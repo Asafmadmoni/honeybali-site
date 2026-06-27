@@ -1,0 +1,45 @@
+/* Honey Bali — interactivity restored (static clone, no Next.js hydration) */
+
+/* Destinations desktop carousel: smooth expand */
+[data-destination]{
+  transition: flex-grow .6s cubic-bezier(.4,0,.2,1);
+  will-change: flex-grow;
+}
+[data-destination] .hb-desc{
+  transition: opacity .45s ease .12s;
+}
+[data-destination] .hb-label{
+  transition: opacity .3s ease;
+}
+[data-destination] video{
+  transition: opacity .5s ease;
+}
+
+/* Accordion content animation */
+.hb-acc-content{
+  transition: height .4s cubic-bezier(.4,0,.2,1), opacity .35s ease;
+  overflow: hidden;
+}
+.hb-acc-icon{ transition: transform .35s ease; }
+
+/* Mobile menu overlay */
+#hb-mobile-menu{
+  position: fixed; inset: 0; z-index: 40;
+  background: rgba(20,32,26,.97);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 1.75rem;
+  opacity: 0; pointer-events: none;
+  transition: opacity .35s ease;
+}
+#hb-mobile-menu.hb-open{ opacity: 1; pointer-events: auto; }
+#hb-mobile-menu a, #hb-mobile-menu button{
+  color: #fff; font-size: 1.5rem; font-weight: 600;
+  opacity: .85; transition: opacity .25s ease; background: none; border: 0;
+}
+#hb-mobile-menu a:hover, #hb-mobile-menu button:hover{ opacity: 1; }
+
+/* Hamburger -> X */
+.hb-burger-open span:nth-child(1){ transform: translateY(6.5px) rotate(45deg) !important; }
+.hb-burger-open span:nth-child(2){ opacity: 0 !important; }
+.hb-burger-open span:nth-child(3){ transform: translateY(-6.5px) rotate(-45deg) !important; }
