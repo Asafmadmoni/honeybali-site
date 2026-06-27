@@ -128,6 +128,25 @@
       panel.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActive(idx, true); restart(); }
       });
+
+      // Hover: play this strip's video even when collapsed (matches original)
+      var video = panel.querySelector('video');
+      var bg = panel.querySelector('[style*="background-image"]');
+      panel.addEventListener('mouseenter', function () {
+        if (idx === current) return; // active already plays
+        if (video) {
+          video.style.opacity = '1';
+          if (video.preload === 'none') video.preload = 'auto';
+          var pr = video.play();
+          if (pr && pr.catch) pr.catch(function () {});
+        }
+        if (bg) bg.style.opacity = '0';
+      });
+      panel.addEventListener('mouseleave', function () {
+        if (idx === current) return; // keep active playing
+        if (video) { video.style.opacity = '0'; try { video.pause(); } catch (e) {} }
+        if (bg) bg.style.opacity = '1';
+      });
     });
     dots.forEach(function (dot, idx) {
       dot.addEventListener('click', function () { setActive(idx, true); restart(); });
