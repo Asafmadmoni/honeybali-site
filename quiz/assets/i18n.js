@@ -71,6 +71,12 @@ export const I18n = {
     return Array.isArray(val) ? val : (val != null ? [val] : []);
   },
 
+  // Does a key exist (in current or fallback locale)?
+  has: function (key) {
+    if (lookup(dict[current], key) != null) return true;
+    return lookup(dict[APP_CONFIG.defaultLang], key) != null;
+  },
+
   // Missing-key audit for QA.
   missingKeys: function (keys) {
     var miss = [];

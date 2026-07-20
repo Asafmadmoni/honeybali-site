@@ -69,7 +69,16 @@ export const QUIZ_STEPS = [
     ],
   },
 
-  { id: 'info1', type: 'info', i18n: 'quiz.info1', media: 'coupleImage' },
+  {
+    id: 'info1', type: 'info', i18n: 'quiz.info1', media: 'coupleImage',
+    // reacts to WHO is flying (q1)
+    variants: [
+      { when: { factIn: { partyType: ['couple'] } },  i18n: 'quiz.info1.couple',  media: 'coupleImage' },
+      { when: { factIn: { partyType: ['family'] } },  i18n: 'quiz.info1.family',  media: 'signatureHotelImages' },
+      { when: { factIn: { partyType: ['friends'] } }, i18n: 'quiz.info1.friends', media: 'restaurantImages' },
+      { when: { factIn: { partyType: ['solo'] } },    i18n: 'quiz.info1.solo',    media: 'activitiesImages' },
+    ],
+  },
 
   {
     id: 'q5_style', type: 'single', i18n: 'quiz.q5',
@@ -103,7 +112,17 @@ export const QUIZ_STEPS = [
     ],
   },
 
-  { id: 'info2', type: 'info', i18n: 'quiz.info2', media: 'signatureHotelImages' },
+  {
+    id: 'info2', type: 'info', i18n: 'quiz.info2', media: 'signatureHotelImages',
+    // irrelevant for visa-only users — they skip straight on (shorter, smarter path)
+    showIf: { notFlag: 'visaExplicit' },
+    // reacts to WHAT they asked for (q5 style / q7 full service)
+    variants: [
+      { when: { factIn: { wantsFullService: [true] } }, i18n: 'quiz.info2.full',  media: 'premiumHotelImages' },
+      { when: { factIn: { style: ['ultra'] } },         i18n: 'quiz.info2.ultra', media: 'premiumHotelImages' },
+      { when: { factIn: { style: ['value'] } },         i18n: 'quiz.info2.value' },
+    ],
+  },
 
   {
     id: 'q8_passport', type: 'single', i18n: 'quiz.q8', microcopy: 'quiz.q8.microcopy',
@@ -119,6 +138,11 @@ export const QUIZ_STEPS = [
   {
     id: 'info3', type: 'info', i18n: 'quiz.info3', media: 'activitiesImages',
     steps: ['quiz.info3.step1', 'quiz.info3.step2', 'quiz.info3.step3'],
+    // reacts to WHICH passport they hold (q8)
+    variants: [
+      { when: { factIn: { passportType: ['foreign'] } }, i18n: 'quiz.info3.foreign' },
+      { when: { factIn: { passportType: ['unknown'] } }, i18n: 'quiz.info3.unsure' },
+    ],
   },
   {
     id: 'q9_budget', type: 'single', i18n: 'quiz.q9',

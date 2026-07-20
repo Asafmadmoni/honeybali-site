@@ -212,14 +212,43 @@ function viewLanding() {
 
 /* quiz step index tracked in state via a lightweight pointer */
 var stepPtr = 0;
-/* Conditional steps: shown only when their showIf matches the current facts. */
+/* Conditional steps: shown only when their showIf matches the current facts/flags. */
 function stepVisible(step) {
   if (!step || !step.showIf) return true;
   var facts = Store.getFacts();
+  var flags = Store.getFlags();
   var cond = step.showIf.factIn || {};
-  return Object.keys(cond).every(function (k) {
+  var factsOk = Object.keys(cond).every(function (k) {
     return cond[k].indexOf(facts[k]) >= 0;
   });
+  if (!factsOk) return false;
+  if (step.showIf.notFlag && flags[step.showIf.notFlag]) return false;
+  return true;
+}
+
+/* Reactive info slides: pick the first variant whose condition matches the answers,
+   so the interstitial speaks to what THIS user just chose. */
+function resolveInfoVariant(step) {
+  var facts = Store.getFacts();
+  var flags = Store.getFlags();
+  var match = (step.variants || []).find(function (v) {
+    var c = v.when || {};
+    if (c.flag && !flags[c.flag]) return false;
+    if (c.factIn && !Object.keys(c.factIn).every(function (k) {
+      return c.factIn[k].indexOf(facts[k]) >= 0;
+    })) return false;
+    return true;
+  }) || {};
+  // per-field fallback to the step's defaults
+  function key(field) {
+    var k = match.i18n ? match.i18n + '.' + field : null;
+    return (k && I18n.has(k)) ? k : step.i18n + '.' + field;
+  }
+  return {
+    titleKey: key('title'),
+    bodyKey: key('body'),
+    media: match.media || step.media,
+  };
 }
 function firstUnanswered() {
   for (var i = 0; i < QUIZ_STEPS.length; i++) {
@@ -339,7 +368,8 @@ function renderStepper(step) {
 }
 function renderInfo(step) {
   Analytics.track('quiz_info_slide_view', baseCtx({ question_id: step.id }));
-  var entry = mediaFor(step.media);
+  var variant = resolveInfoVariant(step);
+  var entry = mediaFor(variant.media);
   var s = h('div', { class: 'hb-screen' });
 
   // normal top bar on white — nothing overlaps the photo
@@ -360,8 +390,8 @@ function renderInfo(step) {
     s.appendChild(media);
   }
 
-  s.appendChild(h('h2', { class: 'hb-question', text: t(step.i18n + '.title') }));
-  s.appendChild(h('p', { class: 'hb-lead', text: t(step.i18n + '.body') }));
+  s.appendChild(h('h2', { class: 'hb-question', text: t(variant.titleKey) }));
+  s.appendChild(h('p', { class: 'hb-lead', text: t(variant.bodyKey) }));
   if (step.steps) s.appendChild(stepsList(step.steps));
   if (step.note) s.appendChild(h('p', { class: 'hb-note', text: t(step.note) }));
   s.appendChild(h('div', { class: 'hb-sticky' }, [
