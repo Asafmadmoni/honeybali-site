@@ -285,7 +285,7 @@ function renderOptions(step) {
       if (!sel.length) { errBox.textContent = t('errors.selectRequired'); return; }
       commitAnswer(step, sel); advance();
     } });
-    return h('div', {}, [wrap, errBox, h('div', { class: 'hb-sticky' }, [cont])]);
+    return h('div', { style: 'display:contents' }, [wrap, errBox, h('div', { class: 'hb-sticky' }, [cont])]);
   }
   return wrap;
 }
@@ -335,7 +335,7 @@ function renderStepper(step) {
     advance();
   } });
   setTimeout(function () { minus.disabled = val <= step.stepper.min; plus.disabled = val >= step.stepper.max; }, 0);
-  return h('div', {}, [row, h('div', { class: 'hb-sticky' }, [cont])]);
+  return h('div', { style: 'display:contents' }, [row, h('div', { class: 'hb-sticky' }, [cont])]);
 }
 function renderInfo(step) {
   Analytics.track('quiz_info_slide_view', baseCtx({ question_id: step.id }));
