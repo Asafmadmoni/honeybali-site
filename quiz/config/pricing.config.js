@@ -26,6 +26,15 @@ export const RETAIL = {
   SIGNATURE_RETAIL_PRICE_21_DAYS: null,
 };
 
+// ---- Reservation deposit ("שריון מקום") ----
+// Charged at the funnel level for Private/Signature to reserve the spot; credited
+// against the final trip price. ⚠️ CONFIRM the amount with the business — editable here.
+export const DEPOSIT = {
+  amount: 250,          // USD — placeholder default, change in one line
+  currency: 'USD',
+  appliesTo: ['private', 'signature'],
+};
+
 // ---- Visa Only — a real, client-facing price provided by the business. ----
 // Dynamic by number of applicants. This is a sale price and MAY be shown.
 export const VISA = {

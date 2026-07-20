@@ -42,12 +42,19 @@ input,select{font:inherit}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 /* ---------- top bar ---------- */
-.hb-topbar{display:flex;align-items:center;gap:14px;min-height:44px;margin-bottom:22px}
+.hb-topbar{position:relative;display:flex;align-items:center;gap:14px;min-height:46px;margin-bottom:24px}
+.hb-topbar-brand{position:absolute;inset-inline:0;margin:auto;width:max-content;
+  font-family:var(--font-display);font-size:20px;letter-spacing:.05em;color:var(--brand-dark);
+  font-weight:500;pointer-events:none;line-height:1}
+.hb-dark-ui .hb-topbar-brand{color:#fff}
 .hb-back{width:42px;height:42px;border-radius:var(--radius-pill);display:flex;align-items:center;
-  justify-content:center;color:var(--foreground-muted);flex:none;border:1px solid transparent;
+  justify-content:center;color:var(--foreground);flex:none;background:#fff;
+  border:1px solid var(--border-light);box-shadow:var(--shadow-sm);
   transition:border-color .25s,background .25s}
-.hb-back:hover{border-color:var(--border);background:#fff}
+.hb-back:hover{border-color:var(--accent-soft)}
 .hb-back svg{width:19px;height:19px}
+/* the chevron must point toward "back" (start side) in RTL */
+[dir="rtl"] .hb-back svg{transform:scaleX(-1)}
 .hb-progress{flex:1;height:3px;background:rgba(32,73,56,.14);border-radius:var(--radius-pill);overflow:hidden}
 .hb-progress-bar{height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-light));
   border-radius:var(--radius-pill);width:0;transition:width .6s var(--ease)}
@@ -210,14 +217,21 @@ input,select{font:inherit}
 .hb-price .hb-price-amount{font-family:var(--font-display);font-size:46px;font-weight:500;line-height:1;
   color:var(--gold-light)}
 .hb-price .hb-price-note{font-size:12.5px;opacity:.7;margin-top:10px;line-height:1.5}
-.hb-faq{margin-top:2px}
-.hb-faq details{border-bottom:1px solid var(--border-light);padding:14px 0}
+.hb-price .hb-price-custom{font-size:19px;font-weight:600;line-height:1.45;color:#fff;max-width:340px;margin:0 auto}
+.hb-deposit{display:inline-flex;align-items:center;gap:8px;margin-top:14px;
+  background:rgba(201,168,106,.14);border:1px solid rgba(201,168,106,.45);color:var(--gold-light);
+  border-radius:var(--radius-pill);padding:9px 18px;font-size:14.5px;font-weight:700}
+.hb-deposit b{font-family:var(--font-num);font-weight:700}
+.hb-faq{margin-top:2px;background:#fff;border:1px solid var(--border-light);
+  border-radius:var(--radius);padding:2px 20px;box-shadow:var(--shadow-sm)}
+.hb-faq details{border-bottom:1px solid var(--border-light);padding:15px 0}
+.hb-faq details:last-child{border-bottom:0}
 .hb-faq summary{font-weight:600;font-size:15px;list-style:none;cursor:pointer;display:flex;
-  justify-content:space-between;gap:12px;align-items:baseline}
+  justify-content:space-between;gap:12px;align-items:baseline;unicode-bidi:plaintext}
 .hb-faq summary::-webkit-details-marker{display:none}
 .hb-faq summary::after{content:"+";color:var(--gold);font-size:21px;line-height:1;font-family:var(--font-num);flex:none}
 .hb-faq details[open] summary::after{content:"–"}
-.hb-faq p{margin:10px 0 0;font-size:14.5px;color:var(--foreground-light);line-height:1.6}
+.hb-faq p{margin:10px 0 0;font-size:14.5px;color:var(--foreground-light);line-height:1.6;unicode-bidi:plaintext}
 
 /* ---------- forms ---------- */
 .hb-field{display:flex;flex-direction:column;gap:7px;margin-bottom:15px}
@@ -265,7 +279,16 @@ input,select{font:inherit}
   background:var(--background-warm);box-shadow:var(--shadow)}
 .hb-media img,.hb-media video{width:100%;height:100%;object-fit:cover}
 
+/* ---------- desktop framing ---------- */
 @media (min-width:600px){
-  .hb-screen{padding-top:36px;padding-bottom:36px}
-  .hb-cine-inner,.hb-result-hero-inner{min-height:100dvh}
+  body{background:
+    radial-gradient(90% 60% at 50% -10%,rgba(32,73,56,.07),transparent 60%),
+    var(--background)}
+  .hb-screen{padding-top:40px;padding-bottom:40px;max-width:560px}
+  .hb-cine{max-width:none;padding:0}
+  .hb-cine-inner{min-height:100dvh;max-width:560px}
+  .hb-result{max-width:none;padding:0}
+  .hb-result-hero{min-height:clamp(380px,52vh,520px)}
+  .hb-result-hero-inner,.hb-result-body{max-width:560px}
+  .hb-question{margin-bottom:28px}
 }

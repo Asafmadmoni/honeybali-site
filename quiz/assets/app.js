@@ -5,7 +5,7 @@
 import APP_CONFIG from '../config/app.config.js';
 import CAMPAIGN from '../config/campaign.config.js';
 import MEDIA from '../config/media.config.js';
-import { VISA, getRetailPrice } from '../config/pricing.config.js';
+import { VISA, DEPOSIT, getRetailPrice } from '../config/pricing.config.js';
 import PACKAGES from '../config/packages.config.js';
 import QUIZ_STEPS, { PROGRESS_STEPS } from '../config/quiz.config.js';
 import Store from './state.js';
@@ -88,7 +88,11 @@ function topbar(opts) {
     setTimeout(function () { bar.firstChild.style.width = opts.progress + '%'; }, 20);
     row.appendChild(bar);
     row.appendChild(h('div', { class: 'hb-progress-label', text: opts.stepText || '' }));
-  } else { row.appendChild(h('div', { style: 'flex:1' })); }
+  } else {
+    // no progress → show the brand wordmark centered
+    row.appendChild(h('div', { class: 'hb-topbar-brand', text: 'HoneyBali' }));
+    row.appendChild(h('div', { style: 'flex:1' }));
+  }
   row.appendChild(langSwitcher());
   return row;
 }
@@ -527,7 +531,8 @@ function viewResult(routeRel) {
 
   // single CTA
   var priced = pricingFor(pkgId, facts);
-  var ctaLabel = priced.chargeable ? t('result.cta') : t('result.ctaOffer');
+  var ctaLabel = pkgId === 'visa' ? t('result.cta')
+    : (priced.deposit ? t('result.ctaReserve') : (priced.chargeable ? t('result.cta') : t('result.ctaOffer')));
   s.appendChild(h('div', { class: 'hb-sticky' }, [
     h('button', { class: 'hb-cta hb-cta-gold', text: ctaLabel, onclick: function () { navigate('/checkout'); } }),
   ]));
@@ -554,7 +559,20 @@ function pricingFor(pkgId, f) {
   }
   var duration = f.duration || 14; // sensible default for display grouping
   var r = getRetailPrice(pkgId, duration);
-  return { chargeable: r.amount != null, amount: r.amount, key: r.key, pending: r.pending, currency: APP_CONFIG.currency, kind: 'retail', duration: duration };
+  var depositApplies = DEPOSIT.appliesTo.indexOf(pkgId) >= 0 && DEPOSIT.amount > 0;
+  return {
+    // A reservation deposit makes the trip packages chargeable even while retail is pending.
+    chargeable: r.amount != null || depositApplies,
+    amount: r.amount, key: r.key, pending: r.pending,
+    deposit: depositApplies ? DEPOSIT.amount : null,
+    currency: APP_CONFIG.currency, kind: 'retail', duration: duration,
+  };
+}
+/* what the checkout actually charges now */
+function chargeFor(pkgId, f) {
+  var p = pricingFor(pkgId, f);
+  if (p.kind === 'visa') return { amount: p.amount, currency: p.currency, isDeposit: false, p: p };
+  return { amount: p.deposit, currency: p.currency, isDeposit: true, p: p };
 }
 function priceBlock(pkgId, f) {
   var p = pricingFor(pkgId, f);
@@ -563,14 +581,19 @@ function priceBlock(pkgId, f) {
     box.appendChild(h('div', { class: 'hb-price-label', text: t('result.priceLabel') + ' · ' + p.applicants + ' × ' + money(p.unit) }));
     box.appendChild(h('div', { class: 'hb-price-amount', text: money(p.amount) }));
     box.appendChild(h('div', { class: 'hb-price-note', text: t('result.priceNote') }));
-  } else if (p.chargeable) {
+  } else if (p.amount != null) {
+    // real retail price is set
     box.appendChild(h('div', { class: 'hb-price-label', text: t('result.priceLabel') }));
     box.appendChild(h('div', { class: 'hb-price-amount', text: money(p.amount) }));
-    box.appendChild(h('div', { class: 'hb-price-note', text: t('result.priceNote') }));
+    if (p.deposit) box.appendChild(h('div', { class: 'hb-deposit', html: t('result.depositLine', { amount: '<b>' + money(p.deposit) + '</b>' }) }));
+    box.appendChild(h('div', { class: 'hb-price-note', text: t('result.depositNote') }));
+  } else if (p.deposit) {
+    // retail pending — reserve the spot with a deposit; NEVER invent a package price
+    box.appendChild(h('div', { class: 'hb-price-custom', text: t('result.priceCustom') }));
+    box.appendChild(h('div', {}, [h('span', { class: 'hb-deposit', html: t('result.depositLine', { amount: '<b>' + money(p.deposit) + '</b>' }) })]));
+    box.appendChild(h('div', { class: 'hb-price-note', text: t('result.depositNote') }));
   } else {
-    // no retail price yet — NEVER invent one
-    if (APP_CONFIG.isDev()) box.appendChild(h('div', { class: 'hb-price-label', text: '[DEV] PRICE PENDING: ' + p.key }));
-    box.appendChild(h('div', { class: 'hb-price-amount', style: 'font-size:22px', text: t('result.pricePending') }));
+    box.appendChild(h('div', { class: 'hb-price-custom', text: t('result.pricePending') }));
   }
   return box;
 }
@@ -582,37 +605,41 @@ function viewCheckout() {
   var pkgId = Store.get().selectedPackage; var pkg = PACKAGES[pkgId];
   if (!pkg) { navigate('/quiz', true); return; }
   var f = Store.getFacts();
-  var p = pricingFor(pkgId, f);
-  Analytics.track('checkout_start', baseCtx({ selected_package: pkgId, value: p.amount || undefined, currency: p.currency }));
+  var charge = chargeFor(pkgId, f);
+  var p = charge.p;
+  Analytics.track('checkout_start', baseCtx({ selected_package: pkgId, value: charge.amount || undefined, currency: charge.currency }));
 
   var s = h('div', { class: 'hb-screen' });
   s.appendChild(topbar({ onBack: function () { navigate('/' + pkg.route); } }));
-  s.appendChild(h('h1', { class: 'hb-h1', text: t('checkout.title') }));
+  s.appendChild(h('h1', { class: 'hb-h1', text: charge.isDeposit ? t('checkout.titleDeposit') : t('checkout.title') }));
+  if (charge.isDeposit) s.appendChild(h('p', { class: 'hb-lead', text: t('checkout.subtitleDeposit') }));
 
   var summary = h('div', { class: 'hb-order-card' }, [
     row(t('checkout.package'), t(pkg.i18n.title)),
     (pkgId !== 'visa' && f.duration) ? row(t('result.duration'), f.duration + ' ' + t('result.days')) : null,
     (pkgId === 'visa') ? row(t('result.visas'), String(visaCount(f))) : null,
+    charge.isDeposit ? row(t('checkout.depositRow'), money(charge.amount)) : null,
   ]);
   s.appendChild(summary);
 
-  var canCharge = p.chargeable && !Payment.blockedInProd();
+  var canCharge = charge.amount != null && !Payment.blockedInProd();
   if (canCharge) {
     s.appendChild(h('div', { class: 'hb-price' }, [
       h('div', { class: 'hb-price-label', text: t('checkout.amount') }),
-      h('div', { class: 'hb-price-amount', text: money(p.amount) }),
+      h('div', { class: 'hb-price-amount', text: money(charge.amount) }),
+      charge.isDeposit ? h('div', { class: 'hb-price-note', text: t('checkout.depositCredit') }) : null,
     ]));
     if (!Payment.isLive() && APP_CONFIG.isDev()) {
       s.appendChild(h('div', { class: 'hb-dev', text: t('checkout.devWarning') }));
       // dev simulate buttons
       s.appendChild(h('div', { class: 'hb-sticky' }, [
-        h('button', { class: 'hb-cta', text: t('checkout.simSuccess'), onclick: function () { doPay(p, 'success'); } }),
-        h('button', { class: 'hb-btn-ghost', style: 'margin-top:10px', text: t('checkout.simFail'), onclick: function () { doPay(p, 'fail'); } }),
+        h('button', { class: 'hb-cta', text: t('checkout.simSuccess'), onclick: function () { doPay(charge, 'success'); } }),
+        h('button', { class: 'hb-btn-ghost', style: 'margin-top:10px', text: t('checkout.simFail'), onclick: function () { doPay(charge, 'fail'); } }),
       ]));
     } else {
       // live provider would render its widget here
       s.appendChild(h('div', { class: 'hb-sticky' }, [
-        h('button', { class: 'hb-cta', text: t('checkout.payNow'), onclick: function () { doPay(p, 'success'); } }),
+        h('button', { class: 'hb-cta', text: t('checkout.payNow'), onclick: function () { doPay(charge, 'success'); } }),
         h('p', { class: 'hb-micro', style: 'text-align:center', text: t('checkout.securePay') }),
       ]));
     }
@@ -635,14 +662,16 @@ function viewCheckout() {
 }
 function row(k, v) { return h('div', { class: 'hb-order-row' }, [h('span', { text: k }), h('b', { text: v })]); }
 
-async function doPay(p, outcome) {
-  var order = { package: Store.get().selectedPackage, amount: p.amount, currency: p.currency, sessionId: Store.getSessionId() };
+async function doPay(charge, outcome) {
+  var order = { package: Store.get().selectedPackage, amount: charge.amount, currency: charge.currency,
+    isDeposit: !!charge.isDeposit, sessionId: Store.getSessionId() };
   var co = await Payment.createCheckout(order);
   checkoutRef = co.ref;
   var res = await Payment.confirm(co.ref, outcome);
   if (res.ok) {
-    Store.setPayment({ status: 'paid', transactionId: res.transactionId, amount: p.amount, currency: p.currency });
-    Analytics.track('payment_success', baseCtx({ selected_package: order.package, value: p.amount, currency: p.currency }));
+    Store.setPayment({ status: 'paid', transactionId: res.transactionId, amount: charge.amount,
+      currency: charge.currency, isDeposit: !!charge.isDeposit });
+    Analytics.track('payment_success', baseCtx({ selected_package: order.package, value: charge.amount, currency: charge.currency }));
     navigate('/success');
   } else {
     Store.setPayment({ status: 'failed' });
