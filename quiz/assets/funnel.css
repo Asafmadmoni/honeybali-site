@@ -130,13 +130,16 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
 /* hero video fades in over the poster once playable */
 .hb-hero-video{position:absolute;inset:0;opacity:0;transition:opacity .9s var(--ease)}
 .hb-hero-video.is-ready{opacity:1}
-/* landing: lighter veil so Bali's colors pop; readability via text-shadow */
+/* landing: lighter veil so Bali's colors pop */
 .hb-landing .hb-cine-bg::after{
   background:linear-gradient(to top,rgba(10,20,15,.86) 0%,rgba(10,20,15,.42) 36%,rgba(10,20,15,.06) 62%,rgba(10,20,15,.22) 100%)}
-.hb-landing .hb-hero-title{text-shadow:0 2px 26px rgba(0,0,0,.6)}
-.hb-landing .hb-hero-sub{text-shadow:0 1px 14px rgba(0,0,0,.55)}
-.hb-landing .hb-eyebrow{text-shadow:0 1px 10px rgba(0,0,0,.65)}
-.hb-landing .hb-rule{box-shadow:0 1px 8px rgba(0,0,0,.4)}
+/* text-shadow belongs ONLY where text sits on the photo (mobile full-bleed) */
+@media (max-width:899px){
+  .hb-landing .hb-hero-title{text-shadow:0 2px 26px rgba(0,0,0,.6)}
+  .hb-landing .hb-hero-sub{text-shadow:0 1px 14px rgba(0,0,0,.55)}
+  .hb-landing .hb-eyebrow{text-shadow:0 1px 10px rgba(0,0,0,.65)}
+  .hb-landing .hb-rule{box-shadow:0 1px 8px rgba(0,0,0,.4)}
+}
 .hb-cine-inner{position:relative;z-index:2;width:100%;max-width:var(--maxw);margin:0 auto;
   min-height:100dvh;display:flex;flex-direction:column;
   padding:calc(16px + env(safe-area-inset-top,0)) var(--pad) calc(26px + env(safe-area-inset-bottom,0))}
@@ -316,11 +319,12 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
   .hb-landing .hb-topbar-brand{color:var(--ink);inset-inline:auto;position:static;margin:0}
   .hb-landing .hb-lang button{color:var(--ink-3)}
   .hb-landing .hb-lang button.active{color:var(--ink);border-bottom-color:var(--gold)}
-  .hb-landing .hb-cine-content{margin:auto 0;max-width:420px;animation:hb-rise .6s var(--ease) both .1s}
-  .hb-landing .hb-cine-content .hb-rule{background:var(--gold)}
-  .hb-landing .hb-hero-title{color:var(--ink);font-size:clamp(38px,3.4vw,48px);max-width:none;
-    text-shadow:none;line-height:1.16}
-  .hb-landing .hb-hero-sub{color:var(--ink-2);font-size:17px}
+  .hb-landing .hb-cine-content{margin:auto 0;max-width:460px;animation:hb-rise .6s var(--ease) both .1s}
+  .hb-landing .hb-cine-content .hb-rule{background:var(--gold);box-shadow:none}
+  .hb-landing .hb-hero-title{color:var(--ink);font-size:clamp(44px,4vw,58px);max-width:none;
+    text-shadow:none;line-height:1.14}
+  .hb-landing .hb-hero-sub{color:var(--ink-2);font-size:19px;text-shadow:none;max-width:40ch}
+  .hb-landing .hb-eyebrow{text-shadow:none;font-size:12.5px}
   .hb-landing .hb-micro{color:var(--ink-3);text-align:start}
   .hb-landing .hb-cta-wrap{margin-top:30px}
   .hb-landing .hb-cta-light{background:var(--brand);color:#fff;width:auto;display:inline-flex;
