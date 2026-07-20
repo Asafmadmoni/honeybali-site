@@ -103,8 +103,8 @@ export const QUIZ_STEPS = [
   {
     id: 'q7_need', type: 'single', i18n: 'quiz.q7',
     options: [
-      { id: 'full', i18n: 'quiz.q7.full', effects: { score: { private: 2, signature: 2 }, set: { wantsFullService: true } } },
-      { id: 'visaonly', i18n: 'quiz.q7.visaOnly', effects: { score: { visa: 5 }, flag: 'visaExplicit', set: { wantsFullService: false } } },
+      { id: 'full', i18n: 'quiz.q7.full', icon: 'images/brand/icons/honey-moon.png', effects: { score: { private: 2, signature: 2 }, set: { wantsFullService: true } } },
+      { id: 'visaonly', i18n: 'quiz.q7.visaOnly', icon: 'images/brand/icons/passport.png', effects: { score: { visa: 5 }, flag: 'visaExplicit', set: { wantsFullService: false } } },
     ],
   },
 

@@ -38,11 +38,13 @@ export const DEPOSIT = {
 // ---- Visa Only — a real, client-facing price provided by the business. ----
 // Dynamic by number of applicants. This is a sale price and MAY be shown.
 export const VISA = {
-  PRICE_PER_APPLICANT: 1200, // USD, per person
+  PRICE_PER_APPLICANT: 1190,        // base, per person
+  PROMO_PRICE_PER_APPLICANT: 990,   // scratch-card campaign benefit
   currency: 'USD',
-  priceFor(applicants) {
+  priceFor(applicants, promo) {
     var n = Math.max(1, parseInt(applicants, 10) || 1);
-    return { applicants: n, unit: this.PRICE_PER_APPLICANT, total: n * this.PRICE_PER_APPLICANT };
+    var unit = promo ? this.PROMO_PRICE_PER_APPLICANT : this.PRICE_PER_APPLICANT;
+    return { applicants: n, unit: unit, baseUnit: this.PRICE_PER_APPLICANT, promo: !!promo, total: n * unit };
   },
 };
 

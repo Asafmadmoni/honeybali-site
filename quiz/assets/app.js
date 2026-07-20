@@ -228,6 +228,12 @@ function viewLanding() {
     } }),
   ]));
   content.appendChild(h('p', { class: 'hb-micro', text: t('landing.duration') }));
+  content.appendChild(h('a', {
+    class: 'hb-ig', href: CAMPAIGN.influencers.profiles.amna, target: '_blank', rel: 'noopener noreferrer',
+  }, [
+    h('img', { class: 'hb-ig-avatar', src: withBase('images/brand/couple2.jpeg'), alt: '' }),
+    h('span', { text: t('landing.igFollow') }),
+  ]));
   inner.appendChild(content);
 
   // mobile: media card sits between topbar and content (all inside the column);
@@ -329,6 +335,7 @@ function renderOptions(step) {
     var isSel = multi ? chosen.indexOf(opt.id) >= 0 : chosen === opt.id;
     var btn = h('button', { class: 'hb-option' + (multi ? ' hb-option-multi' : '') + (isSel ? ' selected' : '') }, [
       h('span', { class: 'hb-check', html: ICON.check }),
+      opt.icon ? h('img', { class: 'hb-opt-icon', src: withBase(opt.icon), alt: '' }) : null,
       h('span', { text: t(opt.i18n) }),
     ]);
     btn.addEventListener('click', function () {
@@ -572,17 +579,78 @@ function runLoadingStage() {
   mount(s);
   var isFinal = refineStage === 4;
   setTimeout(function () {
-    if (isFinal) {
-      var result = decide(Store.get().answers);
-      Store.setRouting(result.package, result.reasonCodes);
-      Store.setFact('leadTemperature', result.temperature);
-      navigate('/' + PACKAGES[result.package].route, true);
-    } else {
-      refineStage++;
-      runLoadingStage();
-    }
+    if (isFinal) renderScratch();
+    else { refineStage++; runLoadingStage(); }
   }, 2600);
 }
+/* scratch-card benefit — the campaign gift moment before the result */
+function renderScratch() {
+  Analytics.track('quiz_info_slide_view', baseCtx({ question_id: 'scratch_benefit' }));
+  var s = h('div', { class: 'hb-screen hb-scratch-screen' });
+  s.appendChild(h('div', { class: 'hb-topbar' }, [
+    h('div', { class: 'hb-topbar-brand' }, [brandLogo(false)]),
+    h('div', { style: 'flex:1' }), langSwitcher(),
+  ]));
+  s.appendChild(h('div', { class: 'hb-eyebrow', text: t('scratch.eyebrow') }));
+  s.appendChild(h('h2', { class: 'hb-question', text: t('scratch.title') }));
+  s.appendChild(h('p', { class: 'hb-lead', text: t('scratch.hint') }));
+
+  // the card: reveal content underneath, gold canvas on top
+  var reveal = h('div', { class: 'hb-scratch-reveal' }, [
+    h('div', { class: 'hb-scratch-promo', text: t('scratch.promo') }),
+    h('div', { class: 'hb-scratch-base', text: t('scratch.base') }),
+    h('div', { class: 'hb-scratch-credit', text: t('scratch.credit') }),
+  ]);
+  var canvas = h('canvas', { class: 'hb-scratch-canvas' });
+  var card = h('div', { class: 'hb-scratch-card' }, [reveal, canvas]);
+  s.appendChild(card);
+
+  var claim = h('button', { class: 'hb-cta', text: t('scratch.claim'), onclick: function () {
+    Store.setFact('benefitClaimed', true);
+    Analytics.track('quiz_answer_selected', baseCtx({ question_id: 'scratch_benefit', answer_id: 'claimed' }));
+    var result = decide(Store.get().answers);
+    Store.setRouting(result.package, result.reasonCodes);
+    Store.setFact('leadTemperature', result.temperature);
+    navigate('/' + PACKAGES[result.package].route, true);
+  } });
+  s.appendChild(h('div', { class: 'hb-sticky' }, [claim]));
+  mount(s);
+
+  // paint + wire the scratch layer once the card is in the DOM
+  setTimeout(function () {
+    var rect = card.getBoundingClientRect();
+    if (!rect.width) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    var g = ctx.createLinearGradient(0, 0, rect.width, rect.height);
+    g.addColorStop(0, '#d9c08a'); g.addColorStop(.5, '#c4a262'); g.addColorStop(1, '#b08f4e');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, rect.width, rect.height);
+    ctx.fillStyle = 'rgba(255,255,255,.85)';
+    ctx.font = '700 20px Rubik, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(t('scratch.hintShort'), rect.width / 2, rect.height / 2 + 7);
+    ctx.globalCompositeOperation = 'destination-out';
+    var scratching = false, strokes = 0, revealed = false;
+    function scratchAt(e) {
+      var r = canvas.getBoundingClientRect();
+      var x = (e.clientX - r.left), y = (e.clientY - r.top);
+      ctx.beginPath(); ctx.arc(x, y, 26, 0, Math.PI * 2); ctx.fill();
+      if (++strokes % 8 === 0 && !revealed) {
+        var d = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+        var clear = 0, step = 64;
+        for (var i = 3; i < d.length; i += 4 * step) { if (d[i] === 0) clear++; }
+        if (clear / (d.length / (4 * step)) > 0.45) {
+          revealed = true; canvas.classList.add('is-cleared');
+        }
+      }
+    }
+    canvas.addEventListener('pointerdown', function (e) { scratching = true; canvas.setPointerCapture(e.pointerId); scratchAt(e); });
+    canvas.addEventListener('pointermove', function (e) { if (scratching) scratchAt(e); });
+    canvas.addEventListener('pointerup', function () { scratching = false; });
+  }, 250);
+}
+
 /* refine question: no progress bar — an "expert follow-up" between calculations */
 function renderRefine(step) {
   Analytics.track('quiz_question_view', baseCtx({ question_id: step.id }));
@@ -759,8 +827,8 @@ function buildSummary(pkgId, f) {
 function visaCount(f) { return f.travelersCount || 1; }
 function pricingFor(pkgId, f) {
   if (pkgId === 'visa') {
-    var v = VISA.priceFor(visaCount(f));
-    return { chargeable: true, amount: v.total, unit: v.unit, applicants: v.applicants, currency: VISA.currency, kind: 'visa' };
+    var v = VISA.priceFor(visaCount(f), !!f.benefitClaimed);
+    return { chargeable: true, amount: v.total, unit: v.unit, baseUnit: v.baseUnit, promo: v.promo, applicants: v.applicants, currency: VISA.currency, kind: 'visa' };
   }
   var duration = f.duration || 14; // sensible default for display grouping
   var r = getRetailPrice(pkgId, duration);
@@ -784,7 +852,10 @@ function priceBlock(pkgId, f) {
   var p = pricingFor(pkgId, f);
   var box = h('div', { class: 'hb-price' });
   if (p.kind === 'visa') {
-    box.appendChild(h('div', { class: 'hb-price-label', text: t('result.priceLabel') + ' · ' + p.applicants + ' × ' + money(p.unit) }));
+    var labelBits = t('result.priceLabel') + ' · ' + p.applicants + ' × ' + money(p.unit);
+    var label = h('div', { class: 'hb-price-label' }, [labelBits + ' ']);
+    if (p.promo) label.appendChild(h('s', { class: 'hb-price-strike', text: money(p.baseUnit) }));
+    box.appendChild(label);
     box.appendChild(h('div', { class: 'hb-price-amount', text: money(p.amount) }));
     box.appendChild(h('div', {}, [h('span', { class: 'hb-deposit', html: t('result.depositLine', { amount: '<b>' + money(DEPOSIT.amount) + '</b>' }) })]));
     box.appendChild(h('div', { class: 'hb-price-note', text: t('result.depositNote') }));
@@ -797,6 +868,7 @@ function priceBlock(pkgId, f) {
   } else if (p.deposit) {
     // retail pending — reserve the spot with a deposit; NEVER invent a package price
     box.appendChild(h('div', { class: 'hb-price-custom', text: t('result.priceCustom') }));
+    if (f.benefitClaimed) box.appendChild(h('div', { class: 'hb-benefit', text: t('result.benefitLine') }));
     box.appendChild(h('div', {}, [h('span', { class: 'hb-deposit', html: t('result.depositLine', { amount: '<b>' + money(p.deposit) + '</b>' }) })]));
     box.appendChild(h('div', { class: 'hb-price-note', text: t('result.depositNote') }));
   } else {
