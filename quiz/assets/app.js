@@ -857,11 +857,8 @@ function viewResult(routeRel) {
   // faq — package FAQs + shared objection FAQs. The "why submit now" question is NOT
   // repeated here: the process timeline above is its single home on this page.
   var faq = h('div', { class: 'hb-faq' });
-  var faqKeys = pkg.i18n.faqKeys.concat(
-    pkgId === 'visa'
-      ? ['result.faqShared.1']
-      : ['result.faqShared.1', 'result.faqShared.3']
-  );
+  // the why-deposit-now argument applies to every package — visa pays a deposit too
+  var faqKeys = pkg.i18n.faqKeys.concat(['result.faqShared.1', 'result.faqShared.3']);
   faqKeys.forEach(function (k) {
     var txt = t(k); var parts = txt.split('?');
     faq.appendChild(h('details', {}, [
