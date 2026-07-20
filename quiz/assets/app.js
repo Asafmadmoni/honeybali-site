@@ -89,12 +89,19 @@ function topbar(opts) {
     row.appendChild(bar);
     row.appendChild(h('div', { class: 'hb-progress-label', text: opts.stepText || '' }));
   } else {
-    // no progress → show the brand wordmark centered
-    row.appendChild(h('div', { class: 'hb-topbar-brand', text: 'HoneyBali' }));
+    // no progress → the real brand logo, centered
+    row.appendChild(h('div', { class: 'hb-topbar-brand' }, [brandLogo(false)]));
     row.appendChild(h('div', { style: 'flex:1' }));
   }
   row.appendChild(langSwitcher());
   return row;
+}
+/* the actual HoneyBali logo (ornate lettering + frangipani). white=true for dark bg */
+function brandLogo(white) {
+  return h('img', {
+    class: 'hb-brand-logo', alt: 'HoneyBali',
+    src: withBase(white ? 'logo/honeybali-logo-white.png' : 'logo/honeybali-logo.png'),
+  });
 }
 function langSwitcher() {
   var wrap = h('div', { class: 'hb-lang' });
@@ -187,7 +194,7 @@ function viewLanding() {
 
   var inner = h('div', { class: 'hb-landing-inner' });
   inner.appendChild(h('div', { class: 'hb-topbar' }, [
-    h('div', { class: 'hb-topbar-brand', text: 'HoneyBali' }),
+    h('div', { class: 'hb-topbar-brand' }, [brandLogo(false)]),
     h('div', { style: 'flex:1' }), langSwitcher(),
   ]));
   var content = h('div', { class: 'hb-landing-content' });
@@ -507,9 +514,9 @@ function goBack() {
 function startLoading() { navigate('/loading'); }
 function viewLoading() {
   Analytics.track('quiz_loading_view', baseCtx());
-  var s = h('div', { class: 'hb-screen hb-loading-light' });
-  s.appendChild(h('img', { class: 'hb-load-emblem', src: withBase('assets/gate-dark.svg'), alt: '' }));
-  s.appendChild(h('div', { class: 'hb-load-brand', text: 'HoneyBali' }));
+  var s = h('div', { class: 'hb-screen hb-loading-dark' });
+  var logo = brandLogo(true); logo.className = 'hb-load-logo';
+  s.appendChild(logo);
   var steps = ['loading.step1', 'loading.step2', 'loading.step3'].map(function (k, i) {
     return h('div', { class: 'hb-load-step' + (i === 0 ? ' active' : ''), 'data-i': i }, [
       h('span', { class: 'hb-load-dot', html: ICON.check }), h('span', { text: t(k) }),
@@ -578,7 +585,7 @@ function viewResult(routeRel) {
 
   // clean header: top bar, framed image, clear title — nothing cropped or overlaid
   s.appendChild(h('div', { class: 'hb-topbar' }, [
-    h('div', { class: 'hb-topbar-brand', text: 'HoneyBali' }),
+    h('div', { class: 'hb-topbar-brand' }, [brandLogo(false)]),
     h('div', { style: 'flex:1' }), langSwitcher(),
   ]));
   var heroEntry = (MEDIA.resultHero && MEDIA.resultHero[pkgId]) || null;
@@ -647,10 +654,8 @@ function viewResult(routeRel) {
 
   // single CTA — explorers get the soft personal-offer path, buyers the deposit path
   var priced = pricingFor(pkgId, facts);
-  var ctaLabel;
-  if (facts.leadTemperature === 'explorer' && pkgId !== 'visa') ctaLabel = t('result.ctaOffer');
-  else if (pkgId === 'visa') ctaLabel = t('result.cta');
-  else ctaLabel = priced.deposit ? t('result.ctaReserve') : (priced.chargeable ? t('result.cta') : t('result.ctaOffer'));
+  var ctaLabel = pkgId === 'visa' ? t('result.cta')
+    : (priced.deposit ? t('result.ctaReserve') : (priced.chargeable ? t('result.cta') : t('result.ctaOffer')));
   s.appendChild(h('div', { class: 'hb-sticky' }, [
     h('button', { class: 'hb-cta', text: ctaLabel, onclick: function () { navigate('/checkout'); } }),
   ]));
@@ -690,9 +695,8 @@ function pricingFor(pkgId, f) {
 function chargeFor(pkgId, f) {
   var p = pricingFor(pkgId, f);
   if (p.kind === 'visa') return { amount: p.amount, currency: p.currency, isDeposit: false, p: p };
-  // Explorers (soft/undecided leads) are nurtured, not charged: no deposit checkout —
-  // they fall into the personal-offer callback flow instead.
-  if (f.leadTemperature === 'explorer') return { amount: null, currency: p.currency, isDeposit: false, p: p };
+  // Business rule: money in the bank, not leads — EVERYONE reserves with the deposit.
+  // (Explorer scoring still rides along in reason codes for the sales call.)
   return { amount: p.deposit, currency: p.currency, isDeposit: true, p: p };
 }
 function priceBlock(pkgId, f) {
@@ -708,15 +712,11 @@ function priceBlock(pkgId, f) {
     box.appendChild(h('div', { class: 'hb-price-amount', text: money(p.amount) }));
     if (p.deposit) box.appendChild(h('div', { class: 'hb-deposit', html: t('result.depositLine', { amount: '<b>' + money(p.deposit) + '</b>' }) }));
     box.appendChild(h('div', { class: 'hb-price-note', text: t('result.depositNote') }));
-  } else if (p.deposit && f.leadTemperature !== 'explorer') {
+  } else if (p.deposit) {
     // retail pending — reserve the spot with a deposit; NEVER invent a package price
     box.appendChild(h('div', { class: 'hb-price-custom', text: t('result.priceCustom') }));
     box.appendChild(h('div', {}, [h('span', { class: 'hb-deposit', html: t('result.depositLine', { amount: '<b>' + money(p.deposit) + '</b>' }) })]));
     box.appendChild(h('div', { class: 'hb-price-note', text: t('result.depositNote') }));
-  } else if (f.leadTemperature === 'explorer') {
-    // nurture variant — no charge pressure, personal offer instead
-    box.appendChild(h('div', { class: 'hb-price-custom', text: t('result.priceCustom') }));
-    box.appendChild(h('div', { class: 'hb-price-note', text: t('result.explorerNote') }));
   } else {
     box.appendChild(h('div', { class: 'hb-price-custom', text: t('result.pricePending') }));
   }
@@ -819,7 +819,7 @@ function viewSuccess() {
   // WhatsApp opens ONLY after a successful payment (per brief). For the personal-offer
   // path (no payment), we still let them message, but the brief's hard rule is specifically
   // "no WhatsApp before payment" — offer_requested is a post-handoff state, not pre-payment.
-  if (paid || st.payment.status === 'offer_requested') {
+  if (paid) {
     s.appendChild(h('div', { class: 'hb-sticky' }, [
       h('button', { class: 'hb-cta hb-wa', html: ICON.wa + '<span>' + t('success.whatsapp') + '</span>', onclick: function () { openWhatsApp(); } }),
     ]));

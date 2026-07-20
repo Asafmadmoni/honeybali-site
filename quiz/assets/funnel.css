@@ -37,8 +37,8 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
 /* ---------- top bar ---------- */
 .hb-topbar{position:relative;display:flex;align-items:center;gap:14px;min-height:46px;margin-bottom:18px}
 .hb-topbar-brand{position:absolute;inset-inline:0;margin:auto;width:max-content;
-  font-family:var(--font-brand);font-size:20px;letter-spacing:.05em;color:var(--ink);
-  font-weight:600;pointer-events:none;line-height:1}
+  pointer-events:none;line-height:1;display:flex;align-items:center}
+.hb-brand-logo{height:40px;width:auto;display:block}
 .hb-back{width:40px;height:40px;border-radius:var(--pill);display:flex;align-items:center;
   justify-content:center;color:var(--ink);flex:none;border:1px solid var(--line);
   background:#fff;transition:.2s}
@@ -128,21 +128,23 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
   background:linear-gradient(to top,var(--bg) 60%,transparent)}
 .hb-spacer{flex:1;min-height:14px}
 
-/* ---------- loading (clean) ---------- */
-.hb-loading-light{justify-content:center;align-items:center;text-align:center}
-.hb-load-emblem{width:52px;height:52px;margin-bottom:14px}
-.hb-load-brand{font-family:var(--font-brand);font-size:26px;color:var(--ink);
-  letter-spacing:.05em;margin-bottom:36px;font-weight:600}
+/* ---------- loading (dark, branded) ---------- */
+.hb-loading-dark{max-width:none;background:var(--brand-deep);align-items:center;
+  justify-content:center;text-align:center;min-height:100dvh}
+.hb-load-logo{width:min(220px,56vw);height:auto;margin-bottom:44px;
+  animation:hb-breathe 2.6s var(--ease) infinite}
+@keyframes hb-breathe{0%,100%{opacity:.92;transform:scale(1)}50%{opacity:1;transform:scale(1.025)}}
 .hb-load-steps{display:flex;flex-direction:column;gap:18px;max-width:330px;text-align:start}
-.hb-load-step{display:flex;align-items:center;gap:13px;font-size:16px;color:var(--ink-3);transition:color .5s}
-.hb-load-step.active{color:var(--ink);font-weight:600}
-.hb-load-step.done{color:var(--brand)}
-.hb-load-dot{width:21px;height:21px;border-radius:var(--pill);border:2px solid var(--line);
+.hb-loading-dark .hb-load-step{color:rgba(255,255,255,.42)}
+.hb-loading-dark .hb-load-step.active{color:#fff;font-weight:600}
+.hb-loading-dark .hb-load-step.done{color:var(--gold-soft)}
+.hb-load-step{display:flex;align-items:center;gap:13px;font-size:16px;transition:color .5s}
+.hb-load-dot{width:21px;height:21px;border-radius:var(--pill);border:2px solid rgba(255,255,255,.28);
   flex:none;display:flex;align-items:center;justify-content:center;transition:.4s}
-.hb-load-step.active .hb-load-dot{border-color:var(--brand);border-top-color:transparent;
+.hb-loading-dark .hb-load-step.active .hb-load-dot{border-color:var(--gold-soft);border-top-color:transparent;
   animation:hb-spin .8s linear infinite}
-.hb-load-step.done .hb-load-dot{background:var(--brand);border-color:var(--brand)}
-.hb-load-step.done .hb-load-dot svg{width:11px;height:11px;color:#fff}
+.hb-loading-dark .hb-load-step.done .hb-load-dot{background:var(--gold-soft);border-color:var(--gold-soft)}
+.hb-loading-dark .hb-load-step.done .hb-load-dot svg{width:11px;height:11px;color:var(--brand-deep)}
 @keyframes hb-spin{to{transform:rotate(360deg)}}
 
 /* ---------- result (clean header, framed image) ---------- */

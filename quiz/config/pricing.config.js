@@ -30,7 +30,7 @@ export const RETAIL = {
 // Charged at the funnel level for Private/Signature to reserve the spot; credited
 // against the final trip price. ⚠️ CONFIRM the amount with the business — editable here.
 export const DEPOSIT = {
-  amount: 250,          // USD — placeholder default, change in one line
+  amount: 200,          // USD — confirmed by the business (influencer campaign)
   currency: 'USD',
   appliesTo: ['private', 'signature'],
 };
