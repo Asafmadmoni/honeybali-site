@@ -282,3 +282,30 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
   .hb-result-hero{min-height:clamp(360px,48vh,480px)}
   .hb-question{font-size:30px}
 }
+
+/* ---------- landing: real desktop composition (split panel + photo) ---------- */
+@media (min-width:900px){
+  .hb-landing{display:grid;grid-template-columns:minmax(480px,42%) 1fr;background:var(--bg)}
+  .hb-landing .hb-cine-bg{position:relative;grid-column:2;grid-row:1;height:100vh}
+  .hb-landing .hb-cine-bg::after{background:linear-gradient(to top,rgba(10,20,15,.28),transparent 45%)}
+  .hb-landing .hb-cine-inner{grid-column:1;grid-row:1;min-height:100vh;max-width:none;
+    padding:44px 64px;background:var(--bg)}
+  /* light panel — flip the dark-ui colors back to ink */
+  .hb-landing .hb-topbar-brand{color:var(--ink);inset-inline:auto;position:static;margin:0}
+  .hb-landing .hb-lang button{color:var(--ink-3)}
+  .hb-landing .hb-lang button.active{color:var(--ink);border-bottom-color:var(--gold)}
+  .hb-landing .hb-cine-content{margin:auto 0;max-width:420px;animation:hb-rise .6s var(--ease) both .1s}
+  .hb-landing .hb-cine-content .hb-rule{background:var(--gold)}
+  .hb-landing .hb-hero-title{color:var(--ink);font-size:clamp(38px,3.4vw,48px);max-width:none;
+    text-shadow:none;line-height:1.16}
+  .hb-landing .hb-hero-sub{color:var(--ink-2);font-size:17px}
+  .hb-landing .hb-micro{color:var(--ink-3);text-align:start}
+  .hb-landing .hb-cta-wrap{margin-top:30px}
+  .hb-landing .hb-cta-light{background:var(--brand);color:#fff;width:auto;display:inline-flex;
+    padding:17px 48px;box-shadow:0 10px 30px rgba(22,51,39,.25)}
+  .hb-landing .hb-cta-light:hover{background:var(--brand-dark)}
+}
+@media (min-width:1280px){
+  .hb-landing{grid-template-columns:minmax(520px,38%) 1fr}
+  .hb-landing .hb-cine-inner{padding:52px 84px}
+}

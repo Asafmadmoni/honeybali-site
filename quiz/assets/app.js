@@ -164,7 +164,7 @@ function brandmark() {
 /* ---------------- Views ---------------- */
 function viewLanding() {
   Analytics.track('landing_view', baseCtx());
-  var s = h('div', { class: 'hb-screen hb-cine hb-dark-ui' });
+  var s = h('div', { class: 'hb-screen hb-cine hb-dark-ui hb-landing' });
   s.appendChild(cineBg(MEDIA.heroImage));
   var chip = devChip(MEDIA.heroImage);
   if (chip) s.appendChild(chip);
