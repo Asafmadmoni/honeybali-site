@@ -125,7 +125,7 @@ function mediaSrc(entry) {
   return null;
 }
 function devChip(entry) {
-  if (!APP_CONFIG.isDev() || !entry || !entry.placeholder) return null;
+  if (!APP_CONFIG.showDebug || !entry || !entry.placeholder) return null;
   return h('span', { class: 'hb-devchip', text: 'DEV · ' + entry.src.split('/').pop() });
 }
 function mediaTile(entry, cls) {
@@ -169,14 +169,17 @@ function viewLanding() {
   var chip = devChip(MEDIA.heroImage);
   if (chip) s.appendChild(chip);
   var inner = h('div', { class: 'hb-cine-inner' });
-  inner.appendChild(h('div', { class: 'hb-topbar' }, [h('div', { style: 'flex:1' }), langSwitcher()]));
+  inner.appendChild(h('div', { class: 'hb-topbar' }, [
+    h('div', { class: 'hb-topbar-brand', text: 'HoneyBali' }),
+    h('div', { style: 'flex:1' }), langSwitcher(),
+  ]));
   var content = h('div', { class: 'hb-cine-content' });
-  content.appendChild(brandmark());
   content.appendChild(h('div', { class: 'hb-eyebrow', text: t('landing.eyebrow') }));
+  content.appendChild(h('div', { class: 'hb-rule' }));
   content.appendChild(h('h1', { class: 'hb-hero-title', text: t('landing.title') }));
   content.appendChild(h('p', { class: 'hb-hero-sub', text: t('landing.subtitle') }));
   content.appendChild(h('div', { class: 'hb-cta-wrap' }, [
-    h('button', { class: 'hb-cta hb-cta-gold', text: t('landing.cta'), onclick: function () {
+    h('button', { class: 'hb-cta hb-cta-light', text: t('landing.cta'), onclick: function () {
       Analytics.track('quiz_start', baseCtx()); navigate('/quiz');
     } }),
   ]));
@@ -298,23 +301,31 @@ function renderStepper(step) {
 function renderInfo(step) {
   Analytics.track('quiz_info_slide_view', baseCtx({ question_id: step.id }));
   var entry = mediaFor(step.media);
-  var s = h('div', { class: 'hb-screen hb-cine hb-dark-ui hb-info' });
-  s.appendChild(cineBg(entry));
+  var s = h('div', { class: 'hb-screen hb-split' });
+
+  // photo on top, controls floating over it
+  var media = h('div', { class: 'hb-split-media' });
+  var src = mediaSrc(entry);
+  if (src) media.appendChild(/\.(mp4|webm)$/.test(src)
+    ? h('video', { src: src, autoplay: '', muted: '', loop: '', playsinline: '' })
+    : h('img', { src: src, alt: '' }));
   var chip = devChip(entry);
-  if (chip) s.appendChild(chip);
-  var inner = h('div', { class: 'hb-cine-inner' });
-  inner.appendChild(h('div', { class: 'hb-topbar' }, [
+  if (chip) media.appendChild(chip);
+  media.appendChild(h('div', { class: 'hb-topbar hb-dark-ui' }, [
     h('button', { class: 'hb-back', 'aria-label': t('common.back'), html: ICON.back, onclick: goBack }),
     h('div', { style: 'flex:1' }), langSwitcher(),
   ]));
-  var content = h('div', { class: 'hb-cine-content' });
-  content.appendChild(h('h2', { text: t(step.i18n + '.title') }));
-  content.appendChild(h('p', { class: 'hb-info-body', text: t(step.i18n + '.body') }));
-  content.appendChild(h('div', { class: 'hb-cta-wrap' }, [
-    h('button', { class: 'hb-cta hb-cta-glass', text: t(step.i18n + '.cta'), onclick: advance }),
+  s.appendChild(media);
+
+  // readable text below, on cream
+  var body = h('div', { class: 'hb-split-body' });
+  body.appendChild(h('div', { class: 'hb-rule' }));
+  body.appendChild(h('h2', { text: t(step.i18n + '.title') }));
+  body.appendChild(h('p', { class: 'hb-body', text: t(step.i18n + '.body') }));
+  body.appendChild(h('div', { class: 'hb-sticky' }, [
+    h('button', { class: 'hb-cta', text: t(step.i18n + '.cta'), onclick: advance }),
   ]));
-  inner.appendChild(content);
-  s.appendChild(inner);
+  s.appendChild(body);
   mount(s);
 }
 function mediaFor(key) {
@@ -412,10 +423,8 @@ function viewLoading() {
   Analytics.track('quiz_loading_view', baseCtx());
   var s = h('div', { class: 'hb-screen hb-cine hb-loading hb-dark-ui' });
   var inner = h('div', { class: 'hb-cine-inner' });
-  var img = h('div', { class: 'hb-load-img' });
-  var loadSrc = mediaSrc(MEDIA.loadingImages[0]) || mediaSrc(mediaFor('coupleImage'));
-  if (loadSrc) img.appendChild(h('img', { src: loadSrc, alt: '' }));
-  inner.appendChild(img);
+  inner.appendChild(h('img', { class: 'hb-load-emblem', src: withBase('assets/gate-white.svg'), alt: '' }));
+  inner.appendChild(h('div', { class: 'hb-load-brand', text: 'HoneyBali' }));
   var steps = ['loading.step1', 'loading.step2', 'loading.step3'].map(function (k, i) {
     return h('div', { class: 'hb-load-step' + (i === 0 ? ' active' : ''), 'data-i': i }, [
       h('span', { class: 'hb-load-dot', html: ICON.check }), h('span', { text: t(k) }),
@@ -481,7 +490,7 @@ function viewResult(routeRel) {
   var heroInner = h('div', { class: 'hb-result-hero-inner' });
   heroInner.appendChild(h('div', { class: 'hb-topbar' }, [h('div', { style: 'flex:1' }), langSwitcher()]));
   var heroContent = h('div', { class: 'hb-result-hero-content' });
-  heroContent.appendChild(h('div', { class: 'hb-badge', text: t('result.recommendedFor') }));
+  heroContent.appendChild(h('div', { class: 'hb-eyebrow', text: t('result.recommendedFor') }));
   heroContent.appendChild(h('h1', { class: 'hb-pkg-name', text: pkg.name }));
   heroContent.appendChild(h('p', { class: 'hb-pkg-tagline', text: t(pkg.i18n.tagline) }));
   heroInner.appendChild(heroContent);
@@ -494,24 +503,26 @@ function viewResult(routeRel) {
   s.appendChild = function (el) { body.appendChild(el); return el; }; // subsequent sections go into body
   sAppend(body);
 
-  if (APP_CONFIG.isDev()) s.appendChild(h('div', { class: 'hb-dev', text: 'DEV route=' + pkgId + ' · reasons=' + (Store.get().routingReasonCodes.join(',')) }));
+  if (APP_CONFIG.showDebug) s.appendChild(h('div', { class: 'hb-dev', text: 'DEV route=' + pkgId + ' · reasons=' + (Store.get().routingReasonCodes.join(',')) }));
 
   // dynamic summary
-  s.appendChild(h('div', { class: 'hb-summary', text: buildSummary(pkgId, facts) }));
+  s.appendChild(h('div', { class: 'hb-microlabel', style: 'margin-top:14px', text: t('result.yourAnswers') }));
+  s.appendChild(h('p', { class: 'hb-summary', text: buildSummary(pkgId, facts) }));
 
-  // facts chips
-  var chips = h('div', { class: 'hb-facts' });
-  if (pkgId !== 'visa' && facts.duration) chips.appendChild(h('span', { class: 'hb-fact', text: facts.duration + ' ' + t('result.days') }));
-  if (facts.travelersCount) chips.appendChild(h('span', { class: 'hb-fact', text: facts.travelersCount + ' ' + t('result.people') }));
-  if (pkgId === 'visa') chips.appendChild(h('span', { class: 'hb-fact', text: t('result.visas') + ': ' + visaCount(facts) }));
-  if (facts.passportType) chips.appendChild(h('span', { class: 'hb-fact', text: t('result.' + passportLabel(facts.passportType)) }));
-  s.appendChild(chips);
+  // spec sheet
+  var spec = h('div', { class: 'hb-spec' });
+  function specRow(k, v) { spec.appendChild(h('div', { class: 'hb-spec-row' }, [h('span', { class: 'k', text: k }), h('span', { class: 'v', text: v })])); }
+  if (pkgId !== 'visa' && facts.duration) specRow(t('result.duration'), facts.duration + ' ' + t('result.days'));
+  if (facts.travelersCount) specRow(t('result.travelers'), String(facts.travelersCount));
+  if (pkgId === 'visa') specRow(t('result.visas'), String(visaCount(facts)));
+  if (facts.passportType) specRow(t('result.passport'), t('result.' + passportLabel(facts.passportType)));
+  s.appendChild(spec);
 
   // includes
-  s.appendChild(h('div', { class: 'hb-section-title', text: t('result.whatsIncluded') }));
+  s.appendChild(h('div', { class: 'hb-microlabel', text: t('result.whatsIncluded') }));
   s.appendChild(listOf(pkg.i18n.includesKeys));
   // differentiators
-  s.appendChild(h('div', { class: 'hb-section-title', text: t('result.whatsSpecial') }));
+  s.appendChild(h('div', { class: 'hb-microlabel', text: t('result.whatsSpecial') }));
   s.appendChild(listOf(pkg.i18n.differentiatorsKeys));
 
   // price
@@ -526,7 +537,7 @@ function viewResult(routeRel) {
       h('p', { text: parts.slice(1).join('?').trim() }),
     ]));
   });
-  s.appendChild(h('div', { class: 'hb-section-title', text: t('result.faq') }));
+  s.appendChild(h('div', { class: 'hb-microlabel', text: t('result.faq') }));
   s.appendChild(faq);
 
   // single CTA
@@ -534,13 +545,13 @@ function viewResult(routeRel) {
   var ctaLabel = pkgId === 'visa' ? t('result.cta')
     : (priced.deposit ? t('result.ctaReserve') : (priced.chargeable ? t('result.cta') : t('result.ctaOffer')));
   s.appendChild(h('div', { class: 'hb-sticky' }, [
-    h('button', { class: 'hb-cta hb-cta-gold', text: ctaLabel, onclick: function () { navigate('/checkout'); } }),
+    h('button', { class: 'hb-cta', text: ctaLabel, onclick: function () { navigate('/checkout'); } }),
   ]));
   mount(s);
 }
 function listOf(keys) {
   var ul = h('ul', { class: 'hb-list' });
-  keys.forEach(function (k) { ul.appendChild(h('li', {}, [h('span', { html: ICON.check }), h('span', { text: t(k) })])); });
+  keys.forEach(function (k) { ul.appendChild(h('li', { text: t(k) })); });
   return ul;
 }
 function buildSummary(pkgId, f) {
@@ -646,7 +657,7 @@ function viewCheckout() {
   } else {
     // No price / no live provider in production → personal-offer flow (no fake charge, no WhatsApp yet)
     s.appendChild(h('div', { class: 'hb-summary' }, [
-      h('div', { class: 'hb-section-title', text: t('checkout.noProviderTitle') }),
+      h('div', { class: 'hb-microlabel', style: 'margin-top:0', text: t('checkout.noProviderTitle') }),
       h('p', { style: 'margin:6px 0 0;font-size:15px;color:var(--foreground-muted)', text: t('checkout.noProviderBody') }),
     ]));
     s.appendChild(h('div', { class: 'hb-sticky' }, [

@@ -18,9 +18,16 @@ function detectEnv() {
   } catch (e) { return 'production'; }
 }
 
+function detectDebug() {
+  try { return new URLSearchParams(location.search).get('debug') === '1'; } catch (e) { return false; }
+}
+
 export const APP_CONFIG = {
   env: detectEnv(),
   isDev() { return this.env === 'development'; },
+  // Visual debug overlays (media chips, routing banner) — only with ?debug=1,
+  // so normal viewing stays clean even in the development environment.
+  showDebug: detectDebug(),
 
   // Default language for the general /quiz link. Influencer link forces ar via ?lang=ar.
   defaultLang: 'he',
