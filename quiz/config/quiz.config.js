@@ -174,6 +174,29 @@ export const QUIZ_STEPS = [
   },
 ];
 
+// Refinement-loop questions (the "calculating…" engagement pattern): asked BETWEEN
+// loading phases after the quiz ends. Data-only — they personalize the sales call,
+// not the routing.
+export const REFINE_STEPS = [
+  {
+    id: 'qr1_priority', i18n: 'refine.q1',
+    options: [
+      { id: 'hotels',     i18n: 'refine.q1.hotels',     effects: { set: { priority: 'hotels' } } },
+      { id: 'experiences', i18n: 'refine.q1.experiences', effects: { set: { priority: 'experiences' } } },
+      { id: 'food',       i18n: 'refine.q1.food',       effects: { set: { priority: 'food' } } },
+      { id: 'romance',    i18n: 'refine.q1.romance',    effects: { set: { priority: 'romance' } } },
+    ],
+  },
+  {
+    id: 'qr2_pace', i18n: 'refine.q2',
+    options: [
+      { id: 'relaxed',  i18n: 'refine.q2.relaxed',  effects: { set: { pace: 'relaxed' } } },
+      { id: 'balanced', i18n: 'refine.q2.balanced', effects: { set: { pace: 'balanced' } } },
+      { id: 'intense',  i18n: 'refine.q2.intense',  effects: { set: { pace: 'intense' } } },
+    ],
+  },
+];
+
 // Steps that count toward the progress bar (info slides & landing excluded from the count
 // but still shown). Questions + lead = the "answered" denominator.
 export const PROGRESS_STEPS = QUIZ_STEPS.filter(function (s) {

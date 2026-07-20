@@ -23,21 +23,30 @@ export const MEDIA_CONFIG = {
   // Landing hero — vertical couple video/image from Bali.
   // No fallback video on purpose: the interim star is the vibrant Nusa Penida shot.
   // When the real Amna & Amer vertical video lands at `src`, it will fade in over the poster.
-  heroVideo: slot(`${INF}/hero-vertical.mp4`, null, 'Amna & Amer vertical hero video'),
-  heroImage: slot(`${INF}/hero-vertical.jpg`, `${IMG}/destinations/NusaPenida.jpg`, 'Amna & Amer vertical hero image'),
-  coupleImage: slot(`${INF}/couple.jpg`, `${IMG}/services/honeymoon.jpg`, 'Amna & Amer couple photo'),
+  heroVideo: slot(`${INF}/hero-vertical.mp4`,
+    'https://honeybali.com/wp-content/uploads/2024/12/HoneyBali-compress-1-1.mp4',
+    'Amna & Amer vertical hero video'),
+  heroImage: slot(`${INF}/hero-vertical.jpg`, `${IMG}/brand/the-edge.webp`, 'Amna & Amer vertical hero image'),
+  coupleImage: slot(`${INF}/couple.jpg`, `${IMG}/brand/couple2.jpeg`, 'Amna & Amer couple photo'),
 
   // Product-tier galleries.
   premiumHotelImages: [slot(`${INF}/private-hotel-1.jpg`, `${IMG}/services/hotels.jpg`, 'Private tier hotel 1')],
   signatureHotelImages: [slot(`${INF}/signature-hotel-1.jpg`, `${IMG}/destinations/Sideman.jpg`, 'Signature tier hotel 1')],
-  activitiesImages: [slot(`${INF}/activity-1.jpg`, `${IMG}/destinations/NusaPenida.jpg`, 'Bali activity 1')],
+  activitiesImages: [slot(`${INF}/activity-1.jpg`, `${IMG}/brand/kecak.png`, 'Bali activity 1')],
   restaurantImages: [slot(`${INF}/restaurant-1.jpg`, `${IMG}/destinations/Canggu.jpg`, 'Bali restaurant 1')],
 
   // Result-page hero backgrounds (per package).
   resultHero: {
-    private: slot(`${INF}/private-hero.jpg`, `${IMG}/destinations/Uluwatu.jpg`, 'Private result hero'),
-    signature: slot(`${INF}/signature-hero.jpg`, `${IMG}/destinations/Ubud.jpg`, 'Signature result hero'),
-    visa: slot(`${INF}/visa-hero.jpg`, `${IMG}/destinations/NorthBali.jpg`, 'Visa result hero'),
+    private: slot(`${INF}/private-hero.jpg`, `${IMG}/brand/the-edge.webp`, 'Private result hero'),
+    signature: slot(`${INF}/signature-hero.jpg`, `${IMG}/brand/changu-web.jpg`, 'Signature result hero'),
+    visa: slot(`${INF}/visa-hero.jpg`, `${IMG}/brand/bg_hero.webp`, 'Visa result hero'),
+  },
+
+  // result-page gallery strips (brand's own photography)
+  resultGallery: {
+    private: [real(`${IMG}/brand/changu-web.jpg`), real(`${IMG}/brand/bg_hero.webp`)],
+    signature: [real(`${IMG}/brand/the-edge.webp`), real(`${IMG}/brand/bg_hero.webp`)],
+    visa: [real(`${IMG}/brand/the-edge.webp`), real(`${IMG}/brand/changu-web.jpg`)],
   },
 
   // Social proof — only if REAL material exists.

@@ -7,7 +7,7 @@ import CAMPAIGN from '../config/campaign.config.js';
 import MEDIA from '../config/media.config.js';
 import { VISA, DEPOSIT, getRetailPrice } from '../config/pricing.config.js';
 import PACKAGES from '../config/packages.config.js';
-import QUIZ_STEPS, { PROGRESS_STEPS } from '../config/quiz.config.js';
+import QUIZ_STEPS, { PROGRESS_STEPS, REFINE_STEPS } from '../config/quiz.config.js';
 import Store from './state.js';
 import I18n from './i18n.js';
 import { decide } from './routing.js';
@@ -547,35 +547,71 @@ function goBack() {
 /* ---------------- loading + routing decision ---------------- */
 function startLoading() { navigate('/loading'); }
 function viewLoading() {
+  // The refinement loop: loading → refine question → loading → refine question →
+  // final loading → result. Each pass feels like the engine is sharpening the match.
+  refineStage = 0;
+  runLoadingStage();
+}
+var refineStage = 0;
+function runLoadingStage() {
+  // stages: 0 load₁ → 1 q₁ → 2 load₂ → 3 q₂ → 4 load₃ → result
+  if (refineStage === 1 || refineStage === 3) {
+    renderRefine(REFINE_STEPS[refineStage === 1 ? 0 : 1]);
+    return;
+  }
+  var labelKey = ['loading.step1', null, 'loading.step2', null, 'loading.step3'][refineStage];
   Analytics.track('quiz_loading_view', baseCtx());
   var s = h('div', { class: 'hb-screen hb-loading-dark' });
   var logo = brandLogo(true); logo.className = 'hb-load-logo';
   s.appendChild(logo);
-  var steps = ['loading.step1', 'loading.step2', 'loading.step3'].map(function (k, i) {
-    return h('div', { class: 'hb-load-step' + (i === 0 ? ' active' : ''), 'data-i': i }, [
-      h('span', { class: 'hb-load-dot', html: ICON.check }), h('span', { text: t(k) }),
-    ]);
-  });
-  s.appendChild(h('div', { class: 'hb-load-steps' }, steps));
+  s.appendChild(h('div', { class: 'hb-load-steps' }, [
+    h('div', { class: 'hb-load-step active' }, [
+      h('span', { class: 'hb-load-dot', html: ICON.check }), h('span', { text: t(labelKey) }),
+    ]),
+  ]));
   mount(s);
-
-  // decide route now, reveal after 6–8s across 3 stages
-  var result = decide(Store.get().answers);
-  Store.setRouting(result.package, result.reasonCodes);
-  Store.setFact('leadTemperature', result.temperature);
-  var stageMs = 2400;
-  steps.forEach(function (el, i) {
-    setTimeout(function () {
-      steps.forEach(function (e, j) { e.classList.toggle('done', j < i); e.classList.toggle('active', j === i); });
-    }, i * stageMs);
+  var isFinal = refineStage === 4;
+  setTimeout(function () {
+    if (isFinal) {
+      var result = decide(Store.get().answers);
+      Store.setRouting(result.package, result.reasonCodes);
+      Store.setFact('leadTemperature', result.temperature);
+      navigate('/' + PACKAGES[result.package].route, true);
+    } else {
+      refineStage++;
+      runLoadingStage();
+    }
+  }, 2600);
+}
+/* refine question: no progress bar — an "expert follow-up" between calculations */
+function renderRefine(step) {
+  Analytics.track('quiz_question_view', baseCtx({ question_id: step.id }));
+  var s = h('div', { class: 'hb-screen' });
+  s.appendChild(h('div', { class: 'hb-topbar' }, [
+    h('div', { class: 'hb-topbar-brand' }, [brandLogo(false)]),
+    h('div', { style: 'flex:1' }), langSwitcher(),
+  ]));
+  s.appendChild(h('div', { class: 'hb-eyebrow', text: t('refine.eyebrow') }));
+  s.appendChild(h('h2', { class: 'hb-question', text: t(step.i18n + '.title') }));
+  var wrap = h('div', { class: 'hb-options' });
+  step.options.forEach(function (opt) {
+    var btn = h('button', { class: 'hb-option' }, [
+      h('span', { class: 'hb-check', html: ICON.check }),
+      h('span', { text: t(opt.i18n) }),
+    ]);
+    btn.addEventListener('click', function () {
+      if (advancing) return;
+      advancing = true;
+      Analytics.track('quiz_answer_selected', baseCtx({ question_id: step.id, answer_id: opt.id }));
+      Store.saveAnswer(step.id, opt.id, opt.effects);
+      wrap.querySelectorAll('.hb-option').forEach(function (b) { b.classList.remove('selected'); });
+      btn.classList.add('selected');
+      setTimeout(function () { advancing = false; refineStage++; runLoadingStage(); }, 260);
+    });
+    wrap.appendChild(btn);
   });
-  setTimeout(function () {
-    steps.forEach(function (e) { e.classList.add('done'); e.classList.remove('active'); });
-  }, 3 * stageMs - 200);
-  setTimeout(function () {
-    var pkg = PACKAGES[result.package];
-    navigate('/' + pkg.route, true);
-  }, 3 * stageMs + 200);
+  s.appendChild(wrap);
+  mount(s);
 }
 
 /* ---------------- result ---------------- */
@@ -631,6 +667,15 @@ function viewResult(routeRel) {
     if (chip) media.appendChild(chip);
     s.appendChild(media);
   }
+  var gal = MEDIA.resultGallery && MEDIA.resultGallery[pkgId];
+  if (gal && gal.length) {
+    var strip = h('div', { class: 'hb-gallery' });
+    gal.forEach(function (g) {
+      var gs = mediaSrc(g);
+      if (gs) strip.appendChild(h('div', { class: 'hb-gallery-item' }, [h('img', { src: gs, alt: '' })]));
+    });
+    s.appendChild(strip);
+  }
   s.appendChild(h('div', { class: 'hb-eyebrow', text: t('result.recommendedFor') }));
   s.appendChild(h('h1', { class: 'hb-pkg-name', text: pkg.name }));
   s.appendChild(h('p', { class: 'hb-pkg-tagline', text: t(pkg.i18n.tagline) }));
@@ -654,6 +699,8 @@ function viewResult(routeRel) {
   if (facts.travelersCount) specRow(t('result.travelers'), String(facts.travelersCount));
   if (pkgId === 'visa') specRow(t('result.visas'), String(visaCount(facts)));
   if (facts.passportType) specRow(t('result.passport'), t('result.' + passportLabel(facts.passportType)));
+  if (facts.priority) specRow(t('result.priorityLabel'), t('refine.q1.' + facts.priority));
+  if (facts.pace) specRow(t('result.paceLabel'), t('refine.q2.' + facts.pace));
   s.appendChild(spec);
 
   // includes — the single home for what the package delivers (no separate "differentiators"
@@ -691,6 +738,7 @@ function viewResult(routeRel) {
   var ctaLabel = pkgId === 'visa' ? t('result.cta')
     : (priced.deposit ? t('result.ctaReserve') : (priced.chargeable ? t('result.cta') : t('result.ctaOffer')));
   s.appendChild(h('div', { class: 'hb-sticky' }, [
+    h('p', { class: 'hb-limited', text: t('result.limited') }),
     h('button', { class: 'hb-cta', text: ctaLabel, onclick: function () { navigate('/checkout'); } }),
   ]));
   mount(s);
