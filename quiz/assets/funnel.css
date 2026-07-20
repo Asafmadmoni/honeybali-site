@@ -58,6 +58,14 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
 /* ---------- type ---------- */
 .hb-eyebrow{font-size:13px;font-weight:700;letter-spacing:.14em;color:var(--gold);
   text-transform:uppercase;margin:0 0 10px}
+/* result-page verdict label — the "this is your match" line earns headline weight */
+.hb-eyebrow.hb-eyebrow-lg{font-size:clamp(17px,4.6vw,21px);letter-spacing:.1em;margin:6px 0 12px}
+
+/* ---------- step transitions: topbar stays rock-solid, only content swaps ---------- */
+.hb-screen>:not(.hb-topbar){transition:opacity .24s ease,transform .24s ease}
+.hb-screen.is-leaving>:not(.hb-topbar){opacity:0;transform:translateY(6px);
+  transition:opacity .12s ease,transform .12s ease}
+.hb-screen.is-entering>:not(.hb-topbar){opacity:0;transform:translateY(10px);transition:none}
 .hb-rule{width:34px;height:3px;background:var(--brand);border-radius:2px;margin:0 0 14px}
 .hb-h1{font-size:clamp(30px,8vw,40px);line-height:1.12;font-weight:800;margin:0 0 12px;
   letter-spacing:-.01em;color:var(--ink)}
@@ -75,6 +83,9 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
 .hb-landing-media{aspect-ratio:4/5;max-height:44dvh}
 .hb-info-media{aspect-ratio:16/10;max-height:270px;margin-bottom:18px}
 .hb-result-media{aspect-ratio:16/9;max-height:240px;margin-bottom:18px}
+/* vertical (reel-format) imagery gets a portrait frame instead of a brutal crop */
+.hb-info-media.is-portrait{aspect-ratio:4/5;max-height:400px}
+.hb-result-media.is-portrait{aspect-ratio:4/5;max-height:440px}
 .hb-hero-video{position:absolute;inset:0;opacity:0;transition:opacity .8s var(--ease)}
 .hb-hero-video.is-ready{opacity:1}
 .hb-devchip{position:absolute;top:10px;inset-inline-start:10px;z-index:3;background:rgba(0,0,0,.55);
@@ -162,6 +173,9 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
   color:#fff;text-align:center;padding:20px}
 .hb-scratch-promo{font-size:38px;font-weight:800;color:#e9d9ae;line-height:1}
 .hb-scratch-base{font-size:16px;font-weight:600;opacity:.9}
+/* the $200 saving — the pampering line, worn like a badge */
+.hb-scratch-save{display:inline-block;margin:10px auto 0;padding:7px 16px;border-radius:999px;
+  background:var(--gold);color:#141414;font-size:14.5px;font-weight:800;letter-spacing:.01em}
 .hb-scratch-credit{font-size:12.5px;opacity:.65;margin-top:6px}
 .hb-scratch-canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;
   touch-action:none;transition:opacity .6s var(--ease)}
@@ -178,7 +192,7 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
 .hb-ig-avatar{width:32px;height:32px;border-radius:var(--pill);object-fit:cover}
 /* gallery strip */
 .hb-gallery{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:-8px 0 18px}
-.hb-gallery-item{aspect-ratio:4/3;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-1)}
+.hb-gallery-item{aspect-ratio:1/1;border-radius:var(--r);overflow:hidden;box-shadow:var(--sh-1)}
 .hb-gallery-item img{width:100%;height:100%;object-fit:cover}
 /* limited-spots line above the CTA */
 .hb-limited{margin:0 0 10px;font-size:13.5px;font-weight:600;color:var(--gold);text-align:center}

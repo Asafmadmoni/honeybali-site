@@ -126,7 +126,9 @@ async function switchLang(l) {
   render();
 }
 
-/* mount — crossfade between screens (no blank flash) */
+/* mount — soft content swap. The topbar is excluded from the fade (CSS targets
+   `> :not(.hb-topbar)`), so the header + progress bar stay rock-solid while only
+   the question content leaves/enters. Kills the whole-screen flash. */
 var root;
 var mountSeq = 0;
 function mount(screen) {
@@ -135,13 +137,18 @@ function mount(screen) {
   var place = function () {
     if (seq !== mountSeq) return; // a newer mount superseded this one
     root.innerHTML = '';
+    screen.classList.add('is-entering');
     root.appendChild(screen);
     if (window.scrollY > 0) window.scrollTo(0, 0);
+    // let the entering styles paint, then release to the resting state (CSS transition).
+    // rAF for the crisp path; a timer fallback because rAF freezes in background tabs.
+    var release = function () { if (seq === mountSeq) screen.classList.remove('is-entering'); };
+    requestAnimationFrame(function () { requestAnimationFrame(release); });
+    setTimeout(release, 320);
   };
   if (old) {
-    old.style.transition = 'opacity .13s ease';
-    old.style.opacity = '0';
-    setTimeout(place, 130);
+    old.classList.add('is-leaving');
+    setTimeout(place, 120);
   } else place();
 }
 
@@ -161,11 +168,21 @@ function mediaTile(entry, cls) {
   var src = mediaSrc(entry);
   if (src) {
     if (/\.(mp4|webm)$/.test(src)) box.appendChild(h('video', { src: src, autoplay: '', muted: '', loop: '', playsinline: '' }));
-    else box.appendChild(h('img', { src: src, alt: '', loading: 'lazy' }));
+    else {
+      var img = h('img', { src: src, alt: '', loading: 'lazy' });
+      orientMedia(box, img);
+      box.appendChild(img);
+    }
     var chip = devChip(entry);
     if (chip) box.appendChild(chip);
   }
   return box;
+}
+/* vertical reel-format shots get a portrait frame (CSS .is-portrait) */
+function orientMedia(box, img) {
+  function apply() { if (img.naturalHeight > img.naturalWidth) box.classList.add('is-portrait'); }
+  if (img.complete && img.naturalWidth) apply();
+  else img.addEventListener('load', apply);
 }
 function withBase(rel) {
   if (/^https?:\/\//.test(rel)) return rel; // absolute URLs (CDN video) pass through
@@ -231,7 +248,7 @@ function viewLanding() {
   content.appendChild(h('a', {
     class: 'hb-ig', href: CAMPAIGN.influencers.profiles.amna, target: '_blank', rel: 'noopener noreferrer',
   }, [
-    h('img', { class: 'hb-ig-avatar', src: withBase('images/brand/couple2.jpeg'), alt: '' }),
+    h('img', { class: 'hb-ig-avatar', src: mediaSrc(MEDIA.coupleAvatar) || withBase('images/brand/couple2.jpeg'), alt: '' }),
     h('span', { text: t('landing.igFollow') }),
   ]));
   inner.appendChild(content);
@@ -419,9 +436,12 @@ function renderInfo(step) {
   var src = mediaSrc(entry);
   if (src) {
     var media = h('div', { class: 'hb-media hb-info-media' });
-    media.appendChild(/\.(mp4|webm)$/.test(src)
-      ? h('video', { src: src, autoplay: '', muted: '', loop: '', playsinline: '' })
-      : h('img', { src: src, alt: '' }));
+    if (/\.(mp4|webm)$/.test(src)) media.appendChild(h('video', { src: src, autoplay: '', muted: '', loop: '', playsinline: '' }));
+    else {
+      var infoImg = h('img', { src: src, alt: '' });
+      orientMedia(media, infoImg);
+      media.appendChild(infoImg);
+    }
     var chip = devChip(entry);
     if (chip) media.appendChild(chip);
     s.appendChild(media);
@@ -471,7 +491,7 @@ function renderLead(step) {
   var submit = h('button', { class: 'hb-cta', text: t('quiz.q12.submit') });
 
   submit.addEventListener('click', function () {
-    var nv = name.input.value.trim(), pv = phoneWrap.input.value.trim(), ev = email.input.value.trim();
+    var nv = name.input.value.trim(), pv = normalizePhoneLocal(phoneWrap.input.value.trim()), ev = email.input.value.trim();
     var ok = true;
     if (!nv) { name.setErr(t('errors.nameRequired')); ok = false; } else name.setErr('');
     if (!pv) { phoneWrap.setErr(t('errors.phoneRequired')); ok = false; }
@@ -505,22 +525,30 @@ function phoneField(val) {
     h('option', { value: '+44', text: '+44' }),
     h('option', { value: '+971', text: '+971' }),
   ]);
-  var input = h('input', { id: 'hb-phone', type: 'tel', inputmode: 'tel', value: val || '', autocomplete: 'tel-national', placeholder: '05X-XXXXXXX' });
-  // autofill often pastes the full +972… number even though the prefix select exists —
-  // normalize so the user never sees a doubled country code
-  input.addEventListener('input', function () {
-    var v = input.value.replace(/[^\d+]/g, '');
-    if (v.indexOf('+972') === 0) v = '0' + v.slice(4);
-    else if (v.indexOf('972') === 0 && v.length > 9) v = '0' + v.slice(3);
-    else v = v.replace(/\+/g, '');
+  // saved leads / autofill often carry the full +972… number even though the prefix
+  // select exists — normalize at init AND on every change so the user never sees a
+  // doubled country code (and never gets an "invalid" error on their own number)
+  var input = h('input', { id: 'hb-phone', type: 'tel', inputmode: 'tel', value: normalizePhoneLocal(val), autocomplete: 'tel-national', placeholder: '05X-XXXXXXX' });
+  function renorm() {
+    var v = normalizePhoneLocal(input.value);
     if (v !== input.value) input.value = v;
-  });
+  }
+  input.addEventListener('input', renorm);
+  input.addEventListener('change', renorm);
+  input.addEventListener('blur', renorm);
   var err = h('div', { class: 'hb-err-msg' });
   var el = h('div', { class: 'hb-field' }, [h('label', { for: 'hb-phone', text: t('quiz.q12.phone') }), h('div', { class: 'hb-phone' }, [cc, input]), err]);
   return { el: el, input: input, cc: cc, setErr: function (m) { err.textContent = m; el.classList.toggle('err', !!m); } };
 }
+/* "+972542600047" / "972542600047" / "0542600047" → "0542600047" */
+function normalizePhoneLocal(raw) {
+  var v = String(raw || '').replace(/[^\d+]/g, '');
+  var m = v.match(/^\+?(972|970)0?(\d{8,})$/);
+  if (m) return '0' + m[2];
+  return v.replace(/\+/g, '');
+}
 function validPhone(v, cc) {
-  var digits = v.replace(/\D/g, '');
+  var digits = normalizePhoneLocal(v).replace(/\D/g, '');
   if (cc === '+972' || cc === '+970') return /^0?5\d{8}$/.test(digits) || /^5\d{8}$/.test(digits);
   return digits.length >= 7 && digits.length <= 15;
 }
@@ -599,6 +627,7 @@ function renderScratch() {
   var reveal = h('div', { class: 'hb-scratch-reveal' }, [
     h('div', { class: 'hb-scratch-promo', text: t('scratch.promo') }),
     h('div', { class: 'hb-scratch-base', text: t('scratch.base') }),
+    h('div', { class: 'hb-scratch-save', text: t('scratch.saveBadge') }),
     h('div', { class: 'hb-scratch-credit', text: t('scratch.credit') }),
   ]);
   var canvas = h('canvas', { class: 'hb-scratch-canvas' });
@@ -726,11 +755,18 @@ function viewResult(routeRel) {
     h('div', { class: 'hb-topbar-brand' }, [brandLogo(false)]),
     h('div', { style: 'flex:1' }), langSwitcher(),
   ]));
+  // THE RESULT FIRST — the visitor must see their match without scrolling.
+  // Imagery comes after the verdict, not before it.
+  s.appendChild(h('div', { class: 'hb-eyebrow hb-eyebrow-lg', text: t('result.recommendedFor') }));
+  s.appendChild(h('h1', { class: 'hb-pkg-name', text: pkg.name }));
+  s.appendChild(h('p', { class: 'hb-pkg-tagline', text: t(pkg.i18n.tagline) }));
   var heroEntry = (MEDIA.resultHero && MEDIA.resultHero[pkgId]) || null;
   var heroSrc = mediaSrc(heroEntry);
   if (heroSrc) {
     var media = h('div', { class: 'hb-media hb-result-media' });
-    media.appendChild(h('img', { src: heroSrc, alt: '' }));
+    var heroImg = h('img', { src: heroSrc, alt: '' });
+    orientMedia(media, heroImg);
+    media.appendChild(heroImg);
     var chip = devChip(heroEntry);
     if (chip) media.appendChild(chip);
     s.appendChild(media);
@@ -744,9 +780,6 @@ function viewResult(routeRel) {
     });
     s.appendChild(strip);
   }
-  s.appendChild(h('div', { class: 'hb-eyebrow', text: t('result.recommendedFor') }));
-  s.appendChild(h('h1', { class: 'hb-pkg-name', text: pkg.name }));
-  s.appendChild(h('p', { class: 'hb-pkg-tagline', text: t(pkg.i18n.tagline) }));
 
   // body sections append directly to the screen
   var body = h('div', {});
@@ -822,7 +855,9 @@ function buildSummary(pkgId, f) {
   var duration = f.duration ? f.duration + ' ' + t('result.days') : '';
   var styleMap = { ultra: 'quiz.q5.ultra', value: 'quiz.q5.value', nature: 'quiz.q5.nature', visa: 'quiz.q5.visaOnly' };
   var style = f.style ? t(styleMap[f.style]) : '';
-  return t('result.summaryTemplate', { party: party, when: when || '—', duration: duration || '—', style: style || '—' });
+  // solo travelers get the singular template (מתכנן/ת, not מתכננים)
+  var tpl = (f.partyType === 'solo' && I18n.has('result.summaryTemplateSolo')) ? 'result.summaryTemplateSolo' : 'result.summaryTemplate';
+  return t(tpl, { party: party, when: when || '—', duration: duration || '—', style: style || '—' });
 }
 function visaCount(f) { return f.travelersCount || 1; }
 function pricingFor(pkgId, f) {
@@ -857,6 +892,7 @@ function priceBlock(pkgId, f) {
     if (p.promo) label.appendChild(h('s', { class: 'hb-price-strike', text: money(p.baseUnit) }));
     box.appendChild(label);
     box.appendChild(h('div', { class: 'hb-price-amount', text: money(p.amount) }));
+    if (p.promo) box.appendChild(h('div', { class: 'hb-benefit', text: t('scratch.saveBadge') }));
     box.appendChild(h('div', {}, [h('span', { class: 'hb-deposit', html: t('result.depositLine', { amount: '<b>' + money(DEPOSIT.amount) + '</b>' }) })]));
     box.appendChild(h('div', { class: 'hb-price-note', text: t('result.depositNote') }));
   } else if (p.amount != null) {

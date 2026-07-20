@@ -44,19 +44,17 @@ export const QUIZ_STEPS = [
       { id: 'jul2027', i18n: 'quiz.q3.jul', effects: { set: { travelMonth: '2027-07' } } },
       { id: 'aug2027', i18n: 'quiz.q3.aug', effects: { set: { travelMonth: '2027-08' } } },
       { id: 'other',   i18n: 'quiz.q3.other',    effects: { set: { travelMonth: 'other' } } },
-      { id: 'undecided', i18n: 'quiz.q3.undecided', effects: { set: { travelMonth: 'undecided' } } },
     ],
   },
   {
-    // Conditional follow-up: only for date-undecided users. Turns "don't know" into a
-    // usable signal + a micro-commitment instead of a dead end. "dreaming" marks explorers.
+    // Conditional follow-up: only when no concrete month was picked. Turns "another date"
+    // into a usable signal + a micro-commitment instead of a dead end. No escape options.
     id: 'q3b_window', type: 'single', i18n: 'quiz.q3b', microcopy: 'quiz.q3b.microcopy',
-    showIf: { factIn: { travelMonth: ['undecided', 'other'] } },
+    showIf: { factIn: { travelMonth: ['other'] } },
     options: [
       { id: 'summer2027', i18n: 'quiz.q3b.summer',     effects: { set: { travelWindow: 'summer2027' } } },
       { id: 'winter',     i18n: 'quiz.q3b.winter',     effects: { set: { travelWindow: 'winter2027' } } },
       { id: 'withinYear', i18n: 'quiz.q3b.withinYear', effects: { set: { travelWindow: 'within_year' } } },
-      { id: 'dreaming',   i18n: 'quiz.q3b.dreaming',   effects: { score: { explorer: 2 }, set: { travelWindow: 'dreaming' } } },
     ],
   },
   {
@@ -65,7 +63,6 @@ export const QUIZ_STEPS = [
       { id: '10', i18n: 'quiz.q4.d10', effects: { set: { duration: 10 } } },
       { id: '14', i18n: 'quiz.q4.d14', effects: { set: { duration: 14 } } },
       { id: '21', i18n: 'quiz.q4.d21', effects: { set: { duration: 21 } } },
-      { id: 'unsure', i18n: 'quiz.q4.unsure', effects: { score: { explorer: 1 }, set: { duration: null } } },
     ],
   },
 
