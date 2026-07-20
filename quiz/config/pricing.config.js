@@ -30,7 +30,7 @@ export const RETAIL = {
 // Charged at the funnel level for Private/Signature to reserve the spot; credited
 // against the final trip price. ⚠️ CONFIRM the amount with the business — editable here.
 export const DEPOSIT = {
-  amount: 200,          // USD — confirmed by the business (influencer campaign)
+  amount: 300,          // USD — set to 300 so the deposit is never confused with the $200 visa benefit
   currency: 'USD',
   appliesTo: ['private', 'signature', 'visa'],
 };
