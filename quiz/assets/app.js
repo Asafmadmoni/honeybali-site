@@ -456,8 +456,10 @@ function renderLead(step) {
   var name = field('fullName', t('quiz.q12.name'), 'text', saved.fullName);
   var phoneWrap = phoneField(saved.phone);
   var email = field('email', t('quiz.q12.email'), 'email', saved.email);
+  var consentInput = h('input', { type: 'checkbox' });
+  consentInput.checked = !!(step.consent && step.consent.preChecked);
   var consent = h('label', { class: 'hb-consent' }, [
-    h('input', { type: 'checkbox' }), h('span', { text: t('quiz.q12.consent') }),
+    consentInput, h('span', { text: t('quiz.q12.consent') }),
   ]);
   var submit = h('button', { class: 'hb-cta', text: t('quiz.q12.submit') });
 
@@ -496,7 +498,16 @@ function phoneField(val) {
     h('option', { value: '+44', text: '+44' }),
     h('option', { value: '+971', text: '+971' }),
   ]);
-  var input = h('input', { id: 'hb-phone', type: 'tel', inputmode: 'tel', value: val || '', autocomplete: 'tel', placeholder: '5X XXX XXXX' });
+  var input = h('input', { id: 'hb-phone', type: 'tel', inputmode: 'tel', value: val || '', autocomplete: 'tel-national', placeholder: '05X-XXXXXXX' });
+  // autofill often pastes the full +972… number even though the prefix select exists —
+  // normalize so the user never sees a doubled country code
+  input.addEventListener('input', function () {
+    var v = input.value.replace(/[^\d+]/g, '');
+    if (v.indexOf('+972') === 0) v = '0' + v.slice(4);
+    else if (v.indexOf('972') === 0 && v.length > 9) v = '0' + v.slice(3);
+    else v = v.replace(/\+/g, '');
+    if (v !== input.value) input.value = v;
+  });
   var err = h('div', { class: 'hb-err-msg' });
   var el = h('div', { class: 'hb-field' }, [h('label', { for: 'hb-phone', text: t('quiz.q12.phone') }), h('div', { class: 'hb-phone' }, [cc, input]), err]);
   return { el: el, input: input, cc: cc, setErr: function (m) { err.textContent = m; el.classList.toggle('err', !!m); } };
@@ -717,10 +728,9 @@ function pricingFor(pkgId, f) {
 /* what the checkout actually charges now */
 function chargeFor(pkgId, f) {
   var p = pricingFor(pkgId, f);
-  if (p.kind === 'visa') return { amount: p.amount, currency: p.currency, isDeposit: false, p: p };
-  // Business rule: money in the bank, not leads — EVERYONE reserves with the deposit.
-  // (Explorer scoring still rides along in reason codes for the sales call.)
-  return { amount: p.deposit, currency: p.currency, isDeposit: true, p: p };
+  // Business rule: money in the bank — EVERY package (visa included) reserves with the
+  // same $deposit; the remainder is settled with the rep after the call.
+  return { amount: DEPOSIT.amount, currency: DEPOSIT.currency, isDeposit: true, p: p };
 }
 function priceBlock(pkgId, f) {
   var p = pricingFor(pkgId, f);
@@ -728,7 +738,8 @@ function priceBlock(pkgId, f) {
   if (p.kind === 'visa') {
     box.appendChild(h('div', { class: 'hb-price-label', text: t('result.priceLabel') + ' · ' + p.applicants + ' × ' + money(p.unit) }));
     box.appendChild(h('div', { class: 'hb-price-amount', text: money(p.amount) }));
-    box.appendChild(h('div', { class: 'hb-price-note', text: t('result.priceNote') }));
+    box.appendChild(h('div', {}, [h('span', { class: 'hb-deposit', html: t('result.depositLine', { amount: '<b>' + money(DEPOSIT.amount) + '</b>' }) })]));
+    box.appendChild(h('div', { class: 'hb-price-note', text: t('result.depositNote') }));
   } else if (p.amount != null) {
     // real retail price is set
     box.appendChild(h('div', { class: 'hb-price-label', text: t('result.priceLabel') }));
@@ -820,12 +831,31 @@ async function doPay(charge, outcome) {
     Store.setPayment({ status: 'paid', transactionId: res.transactionId, amount: charge.amount,
       currency: charge.currency, isDeposit: !!charge.isDeposit });
     Analytics.track('payment_success', baseCtx({ selected_package: order.package, value: charge.amount, currency: charge.currency }));
+    sendLeadWebhook('payment_success'); // business gets the full details automatically
     navigate('/success');
   } else {
     Store.setPayment({ status: 'failed' });
     Analytics.track('payment_failed', baseCtx({ selected_package: order.package }));
     alert(t('errors.generic'));
   }
+}
+
+/* Fire-and-forget lead delivery to the business (Make/Zapier webhook). */
+function sendLeadWebhook(stage) {
+  var url = CAMPAIGN.leadWebhookUrl;
+  if (!url) return;
+  var st = Store.get();
+  try {
+    fetch(url, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        stage: stage, sessionId: st.sessionId, language: st.language,
+        lead: st.lead, package: st.selectedPackage, facts: st.facts,
+        answers: st.answers, reasonCodes: st.routingReasonCodes,
+        payment: st.payment, utm: st.utm, referrer: st.referrer,
+      }),
+    }).catch(function () {});
+  } catch (e) { /* never block the funnel on delivery */ }
 }
 
 /* ---------------- success + whatsapp ---------------- */

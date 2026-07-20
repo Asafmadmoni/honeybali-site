@@ -32,7 +32,7 @@ export const RETAIL = {
 export const DEPOSIT = {
   amount: 200,          // USD — confirmed by the business (influencer campaign)
   currency: 'USD',
-  appliesTo: ['private', 'signature'],
+  appliesTo: ['private', 'signature', 'visa'],
 };
 
 // ---- Visa Only — a real, client-facing price provided by the business. ----

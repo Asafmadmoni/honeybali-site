@@ -73,6 +73,8 @@ export const QUIZ_STEPS = [
     id: 'info1', type: 'info', i18n: 'quiz.info1', media: 'coupleImage',
     // reacts to WHO is flying (q1)
     variants: [
+      { when: { factIn: { duration: [21] } },   i18n: 'quiz.info1.d21' },
+      { when: { factIn: { duration: [null] } }, i18n: 'quiz.info1.durUnsure' },
       { when: { factIn: { partyType: ['couple'] } },  i18n: 'quiz.info1.couple',  media: 'coupleImage' },
       { when: { factIn: { partyType: ['family'] } },  i18n: 'quiz.info1.family',  media: 'signatureHotelImages' },
       { when: { factIn: { partyType: ['friends'] } }, i18n: 'quiz.info1.friends', media: 'restaurantImages' },
@@ -99,16 +101,10 @@ export const QUIZ_STEPS = [
     ],
   },
   {
-    id: 'q7_handle', type: 'multi', i18n: 'quiz.q7',
+    id: 'q7_need', type: 'single', i18n: 'quiz.q7',
     options: [
-      { id: 'visas',      i18n: 'quiz.q7.visas',      effects: { score: { signature: 1 } } },
-      { id: 'itinerary',  i18n: 'quiz.q7.itinerary',  effects: { score: { signature: 2, private: 1 } } },
-      { id: 'hotels',     i18n: 'quiz.q7.hotels',     effects: { score: { signature: 1, private: 1 } } },
-      { id: 'drivers',    i18n: 'quiz.q7.drivers',    effects: { score: { signature: 1 } } },
-      { id: 'activities', i18n: 'quiz.q7.activities', effects: { score: { signature: 1 } } },
-      { id: 'dining',     i18n: 'quiz.q7.dining',     effects: { score: { signature: 1 } } },
-      { id: 'full',       i18n: 'quiz.q7.full',       effects: { score: { private: 3, signature: 2 }, set: { wantsFullService: true } } },
-      { id: 'visaonly',   i18n: 'quiz.q7.visaOnly',   effects: { score: { visa: 5 }, flag: 'visaExplicit', exclusive: true } },
+      { id: 'full', i18n: 'quiz.q7.full', effects: { score: { private: 2, signature: 2 }, set: { wantsFullService: true } } },
+      { id: 'visaonly', i18n: 'quiz.q7.visaOnly', effects: { score: { visa: 5 }, flag: 'visaExplicit', set: { wantsFullService: false } } },
     ],
   },
 
@@ -130,7 +126,6 @@ export const QUIZ_STEPS = [
       { id: 'il',      i18n: 'quiz.q8.il',      effects: { set: { passportType: 'israeli' } } },
       { id: 'mixed',   i18n: 'quiz.q8.mixed',   effects: { set: { passportType: 'mixed' } } },
       { id: 'foreign', i18n: 'quiz.q8.foreign', effects: { set: { passportType: 'foreign' } } },
-      { id: 'unsure',  i18n: 'quiz.q8.unsure',  effects: { set: { passportType: 'unknown' } } },
     ],
   },
 
@@ -141,16 +136,14 @@ export const QUIZ_STEPS = [
     // reacts to WHICH passport they hold (q8)
     variants: [
       { when: { factIn: { passportType: ['foreign'] } }, i18n: 'quiz.info3.foreign' },
-      { when: { factIn: { passportType: ['unknown'] } }, i18n: 'quiz.info3.unsure' },
     ],
   },
   {
     id: 'q9_budget', type: 'single', i18n: 'quiz.q9',
-    // Options are conceptual until retail bands are set (BUDGET_RANGE_* placeholders).
     options: [
-      { id: 'smart',    i18n: 'quiz.q9.smart',    effects: { score: { signature: 3 }, set: { budgetSegment: 'signature' } } },
-      { id: 'indulgent', i18n: 'quiz.q9.indulgent', effects: { score: { private: 2, signature: 1 }, set: { budgetSegment: 'flexible' } } },
-      { id: 'highest',  i18n: 'quiz.q9.highest',  effects: { score: { private: 3 }, set: { budgetSegment: 'private' } } },
+      { id: 'b7',   i18n: 'quiz.q9.b7',   effects: { score: { signature: 3 }, set: { budgetSegment: 'signature' } } },
+      { id: 'b15',  i18n: 'quiz.q9.b15',  effects: { score: { signature: 2, private: 1 }, set: { budgetSegment: 'flexible' } } },
+      { id: 'b15p', i18n: 'quiz.q9.b15p', effects: { score: { private: 3 }, set: { budgetSegment: 'private' } } },
       { id: 'undecided', i18n: 'quiz.q9.undecided', effects: { score: { explorer: 1 }, set: { budgetSegment: 'unknown' } } },
     ],
   },
@@ -160,7 +153,6 @@ export const QUIZ_STEPS = [
       { id: 'yes',     i18n: 'quiz.q10.yes',     effects: { set: { flightStatus: 'booked' } } },
       { id: 'notyet',  i18n: 'quiz.q10.notYet',  effects: { set: { flightStatus: 'not_yet' } } },
       { id: 'waiting', i18n: 'quiz.q10.waiting', effects: { set: { flightStatus: 'waiting_plan' } } },
-      { id: 'checking', i18n: 'quiz.q10.checking', effects: { score: { explorer: 1 }, set: { flightStatus: 'checking' } } },
     ],
   },
   {
@@ -169,7 +161,6 @@ export const QUIZ_STEPS = [
       { id: 'now',      i18n: 'quiz.q11.now',     effects: { score: { private: 1, signature: 1 }, set: { readiness: 'now' } } },
       { id: 'soon',     i18n: 'quiz.q11.soon',    effects: { set: { readiness: 'soon' } } },
       { id: 'comparing', i18n: 'quiz.q11.comparing', effects: { score: { explorer: 1 }, set: { readiness: 'comparing' } } },
-      { id: 'future',   i18n: 'quiz.q11.future',  effects: { score: { explorer: 2 }, set: { readiness: 'future' } } },
     ],
   },
   {
@@ -179,7 +170,7 @@ export const QUIZ_STEPS = [
       { id: 'phone',    i18n: 'quiz.q12.phone', type: 'tel',   required: true },
       { id: 'email',    i18n: 'quiz.q12.email', type: 'email', required: false },
     ],
-    consent: { id: 'marketing', i18n: 'quiz.q12.consent', required: false, preChecked: false },
+    consent: { id: 'marketing', i18n: 'quiz.q12.consent', required: false, preChecked: true },
   },
 ];
 

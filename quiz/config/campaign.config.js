@@ -5,8 +5,13 @@
 
 export const CAMPAIGN_CONFIG = {
   // Business WhatsApp number in international format, digits only (no + / spaces).
-  // ⚠️ PLACEHOLDER NUMBER (not a real line) — replace with HoneyBali's business WhatsApp.
-  whatsappNumber: '972500000000',
+  whatsappNumber: '972542600047',
+
+  // Lead-delivery webhook (Make.com/Zapier): every successful payment POSTs the full
+  // lead + answers + order here so the business gets the details automatically —
+  // without relying on the customer pressing the WhatsApp button.
+  // ⚠️ Empty = disabled. Paste your Make webhook URL to activate.
+  leadWebhookUrl: '',
 
   influencers: {
     key: 'amna_amer',
