@@ -424,7 +424,7 @@ function renderInfo(step) {
   Analytics.track('quiz_info_slide_view', baseCtx({ question_id: step.id }));
   var variant = resolveInfoVariant(step);
   var entry = mediaFor(variant.media);
-  var s = h('div', { class: 'hb-screen' });
+  var s = h('div', { class: 'hb-screen hb-info' });
 
   // normal top bar on white — nothing overlaps the photo
   s.appendChild(h('div', { class: 'hb-topbar' }, [
@@ -449,6 +449,13 @@ function renderInfo(step) {
 
   s.appendChild(h('h2', { class: 'hb-question', text: t(variant.titleKey) }));
   s.appendChild(h('p', { class: 'hb-lead', text: t(variant.bodyKey) }));
+  if (step.checks) {
+    var ul = h('ul', { class: 'hb-checks' });
+    step.checks.forEach(function (k) {
+      ul.appendChild(h('li', {}, [h('span', { class: 'hb-check-dot', html: ICON.check }), h('span', { text: t(k) })]));
+    });
+    s.appendChild(ul);
+  }
   if (step.steps) s.appendChild(stepsList(step.steps));
   if (step.note) s.appendChild(h('p', { class: 'hb-note', text: t(step.note) }));
   s.appendChild(h('div', { class: 'hb-sticky' }, [

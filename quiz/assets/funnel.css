@@ -226,6 +226,12 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
 .hb-list li::before{content:"";position:absolute;inset-inline-start:2px;top:.6em;
   width:7px;height:7px;transform:rotate(45deg);background:var(--gold)}
 /* numbered steps */
+/* info-slide checklist — what "we close everything" concretely means */
+.hb-checks{list-style:none;margin:18px 0 0;padding:0;display:flex;flex-direction:column;gap:12px}
+.hb-checks li{display:flex;align-items:flex-start;gap:11px;font-size:16px;color:var(--ink-2);line-height:1.5}
+.hb-check-dot{flex:none;width:23px;height:23px;border-radius:50%;background:var(--brand);color:#fff;
+  display:inline-flex;align-items:center;justify-content:center;margin-top:1px}
+.hb-check-dot svg{width:13px;height:13px}
 .hb-steps{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column}
 .hb-steps li{display:flex;gap:16px;align-items:flex-start;padding:13px 0;
   border-bottom:1px solid var(--line-soft)}
@@ -312,4 +318,8 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
   .hb-landing .hb-cta-wrap .hb-cta{width:auto;display:inline-flex;padding:17px 48px}
   .hb-landing .hb-micro{text-align:start}
   .hb-result-media{max-height:300px}
+  /* info slides are short — CTA follows the content instead of pinning to the
+     viewport bottom, so no dead white void between text and button */
+  .hb-info .hb-sticky{position:static;margin-top:30px}
+  .hb-info .hb-sticky .hb-cta{width:auto;display:inline-flex;padding:16px 46px}
 }

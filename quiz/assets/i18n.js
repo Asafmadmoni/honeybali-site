@@ -12,7 +12,7 @@ var BASE = null; // resolved by app bootstrap (site-relative path to /quiz)
 var dict = {};
 var current = null;
 
-function localeUrl(lang) { return (BASE || '.') + '/locales/' + lang + '.json?v=28'; }
+function localeUrl(lang) { return (BASE || '.') + '/locales/' + lang + '.json?v=29'; }
 
 export const I18n = {
   setBase: function (b) { BASE = b; },

@@ -107,6 +107,8 @@ export const QUIZ_STEPS = [
 
   {
     id: 'info2', type: 'info', i18n: 'quiz.info2', media: 'signatureHotelImages',
+    // what "we close everything" actually means — concrete, not a slogan
+    checks: ['quiz.info2.checks.1', 'quiz.info2.checks.2', 'quiz.info2.checks.3', 'quiz.info2.checks.4'],
     // irrelevant for visa-only users — they skip straight on (shorter, smarter path)
     showIf: { notFlag: 'visaExplicit' },
     // reacts to WHAT they asked for (q5 style / q7 full service)
