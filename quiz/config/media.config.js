@@ -21,8 +21,10 @@ function real(src) { return { src: src, placeholder: false, fallback: null }; }
 
 export const MEDIA_CONFIG = {
   // Landing hero — vertical couple video/image from Bali.
+  // No fallback video on purpose: the interim star is the vibrant Nusa Penida shot.
+  // When the real Amna & Amer vertical video lands at `src`, it will fade in over the poster.
   heroVideo: slot(`${INF}/hero-vertical.mp4`, null, 'Amna & Amer vertical hero video'),
-  heroImage: slot(`${INF}/hero-vertical.jpg`, `${IMG}/photos/hero-vertical-poster.jpg`, 'Amna & Amer vertical hero image'),
+  heroImage: slot(`${INF}/hero-vertical.jpg`, `${IMG}/destinations/NusaPenida.jpg`, 'Amna & Amer vertical hero image'),
   coupleImage: slot(`${INF}/couple.jpg`, `${IMG}/services/honeymoon.jpg`, 'Amna & Amer couple photo'),
 
   // Product-tier galleries.

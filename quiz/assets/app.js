@@ -140,6 +140,7 @@ function mediaTile(entry, cls) {
   return box;
 }
 function withBase(rel) {
+  if (/^https?:\/\//.test(rel)) return rel; // absolute URLs (CDN video) pass through
   // media in /public/... or existing /images/... — resolve against site root (one level up from /quiz)
   var siteRoot = BASE.replace(/\/quiz$/, '');
   return siteRoot + '/' + rel.replace(/^\//, '');
@@ -165,7 +166,23 @@ function brandmark() {
 function viewLanding() {
   Analytics.track('landing_view', baseCtx());
   var s = h('div', { class: 'hb-screen hb-cine hb-dark-ui hb-landing' });
-  s.appendChild(cineBg(MEDIA.heroImage));
+
+  // Hero: vibrant poster image instantly, cinematic video fades in over it when ready.
+  var bg = h('div', { class: 'hb-cine-bg' });
+  var posterSrc = mediaSrc(MEDIA.heroImage);
+  if (posterSrc) bg.appendChild(h('img', { src: posterSrc, alt: '', fetchpriority: 'high' }));
+  var videoSrc = mediaSrc(MEDIA.heroVideo);
+  if (videoSrc) {
+    var vid = h('video', { class: 'hb-hero-video', src: videoSrc, autoplay: '', muted: '', loop: '', playsinline: '', preload: 'auto' });
+    vid.muted = true; // some browsers need the property, not just the attribute
+    vid.addEventListener('canplay', function () {
+      var pr = vid.play();
+      if (pr && pr.catch) pr.catch(function () {});
+      vid.classList.add('is-ready');
+    });
+    bg.appendChild(vid);
+  }
+  s.appendChild(bg);
   var chip = devChip(MEDIA.heroImage);
   if (chip) s.appendChild(chip);
   var inner = h('div', { class: 'hb-cine-inner' });
