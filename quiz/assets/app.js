@@ -581,12 +581,10 @@ function viewResult(routeRel) {
   if (facts.passportType) specRow(t('result.passport'), t('result.' + passportLabel(facts.passportType)));
   s.appendChild(spec);
 
-  // includes
+  // includes — the single home for what the package delivers (no separate "differentiators"
+  // section: it duplicated these bullets in other words; unique facts were folded in here)
   s.appendChild(h('div', { class: 'hb-microlabel', text: t('result.whatsIncluded') }));
   s.appendChild(listOf(pkg.i18n.includesKeys));
-  // differentiators
-  s.appendChild(h('div', { class: 'hb-microlabel', text: t('result.whatsSpecial') }));
-  s.appendChild(listOf(pkg.i18n.differentiatorsKeys));
 
   // how it works — the smart visa timeline (objection: "why start now?")
   s.appendChild(h('div', { class: 'hb-microlabel', text: t('result.process.title') }));
@@ -595,12 +593,13 @@ function viewResult(routeRel) {
   // price
   s.appendChild(priceBlock(pkgId, facts));
 
-  // faq — package FAQs + shared objection-handling FAQs (passport / why-now / why-deposit)
+  // faq — package FAQs + shared objection FAQs. The "why submit now" question is NOT
+  // repeated here: the process timeline above is its single home on this page.
   var faq = h('div', { class: 'hb-faq' });
   var faqKeys = pkg.i18n.faqKeys.concat(
     pkgId === 'visa'
-      ? ['result.faqShared.1', 'result.faqShared.2']
-      : ['result.faqShared.1', 'result.faqShared.2', 'result.faqShared.3']
+      ? ['result.faqShared.1']
+      : ['result.faqShared.1', 'result.faqShared.3']
   );
   faqKeys.forEach(function (k) {
     var txt = t(k); var parts = txt.split('?');
