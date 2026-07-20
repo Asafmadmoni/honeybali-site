@@ -5,8 +5,8 @@
 
 export const CAMPAIGN_CONFIG = {
   // Business WhatsApp number in international format, digits only (no + / spaces).
-  // PLACEHOLDER — replace with the real HoneyBali business number.
-  whatsappNumber: '972526642842', // from existing site footer (+972-52-664-2842)
+  // ⚠️ PLACEHOLDER NUMBER (not a real line) — replace with HoneyBali's business WhatsApp.
+  whatsappNumber: '972500000000',
 
   influencers: {
     key: 'amna_amer',

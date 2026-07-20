@@ -1,4 +1,4 @@
-/* Honey Bali — restores interactivity on the static clone (Next.js does not hydrate). */
+/* HoneyBali — restores interactivity on the static clone (Next.js does not hydrate). */
 (function () {
   function ready(fn) {
     if (document.readyState !== 'loading') fn();
@@ -259,7 +259,7 @@
               '<source src="' + R2 + media + '.mp4" type="video/mp4"></video>' +
           '</div></div>' +
           '<div class="mt-4 space-y-3 text-[15px] leading-relaxed text-foreground-muted">' + paras + '</div>' +
-          (svc.cta ? '<a href="https://balidream.co.il/#contact" class="mt-3 inline-flex items-center gap-1 text-[14px] font-medium text-brand">' +
+          (svc.cta ? '<a href="#contact" class="mt-3 inline-flex items-center gap-1 text-[14px] font-medium text-brand">' +
             escapeHtml(svc.cta) + '<span aria-hidden="true" class="text-[16px]">›</span></a>' : '') +
         '</div>';
       btn.parentElement.insertBefore(content, btn.nextSibling);
@@ -283,7 +283,7 @@
       .filter(function (el) {
         if (el === burger) return false;
         var t = el.textContent.trim();
-        return t && t.length < 24 && !/דף הבית|Bali Dream/.test(el.getAttribute('aria-label') || '') && !el.querySelector('img,svg');
+        return t && t.length < 24 && !/דף הבית|HoneyBali/.test(el.getAttribute('aria-label') || '') && !el.querySelector('img,svg');
       });
 
     var menu = document.createElement('nav');
@@ -336,8 +336,8 @@
       var href = a.getAttribute('href') || '';
       var hash = href.indexOf('#') >= 0 ? href.slice(href.indexOf('#')) : '';
       if (!hash || hash === '#') return;
-      // only same-page anchors (strip the balidream.co.il origin)
-      var samePage = /#/.test(href) && (href.indexOf('#') === 0 || /balidream\.co\.il|localhost|^\//.test(href) || href.indexOf('http') !== 0);
+      // only same-page anchors (strip the asafmadmoni.github.io origin)
+      var samePage = /#/.test(href) && (href.indexOf('#') === 0 || /asafmadmoni\.github\.io|localhost|^\//.test(href) || href.indexOf('http') !== 0);
       var target = document.querySelector(hash) || document.getElementById(hash.slice(1));
       if (target && samePage) {
         e.preventDefault();
