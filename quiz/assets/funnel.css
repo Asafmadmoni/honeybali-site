@@ -23,8 +23,10 @@ html{-webkit-text-size-adjust:100%}
 body{font-family:var(--font-he);color:var(--ink);background:var(--bg);
   line-height:1.6;font-size:16px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 img,video{max-width:100%;display:block}
-button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0;
+  touch-action:manipulation}
 input,select{font:inherit}
+a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
 
 /* ---------- shell ---------- */
 #hb-app{min-height:100dvh;display:flex;flex-direction:column;align-items:center}
@@ -55,9 +57,9 @@ input,select{font:inherit}
 .hb-progress-label{font-size:12px;font-weight:600;color:var(--ink-3);flex:none;
   font-family:var(--font-num);letter-spacing:.04em}
 /* language — minimal text links */
-.hb-lang{display:flex;align-items:center;gap:12px;flex:none}
+.hb-lang{display:flex;align-items:center;gap:14px;flex:none}
 .hb-lang button{font-size:13.5px;font-weight:500;color:var(--ink-3);line-height:1;
-  padding:4px 0;border-bottom:1.5px solid transparent;transition:.2s}
+  padding:11px 2px;min-height:38px;border-bottom:1.5px solid transparent;transition:.2s}
 .hb-lang button.active{color:var(--ink);border-bottom-color:var(--gold);font-weight:700}
 .hb-dark-ui .hb-lang button{color:rgba(255,255,255,.65)}
 .hb-dark-ui .hb-lang button.active{color:#fff;border-bottom-color:var(--gold-soft)}
@@ -259,6 +261,17 @@ input,select{font:inherit}
 .hb-media{width:100%;aspect-ratio:4/5;border-radius:var(--r-lg);overflow:hidden;position:relative;
   background:var(--bg-warm)}
 .hb-media img,.hb-media video{width:100%;height:100%;object-fit:cover}
+
+/* ---------- short phones (iPhone SE etc.) ---------- */
+@media (max-height:640px){
+  .hb-split-media{height:34dvh;min-height:210px}
+  .hb-split-body h2{margin-top:4px}
+  .hb-load-steps{gap:14px}
+  .hb-cine-content .hb-hero-title{font-size:clamp(26px,7.6vw,34px)}
+  .hb-screen{padding-top:calc(10px + env(safe-area-inset-top,0))}
+  .hb-topbar{margin-bottom:18px}
+  .hb-question{margin-bottom:2px}
+}
 
 /* ---------- desktop ---------- */
 @media (min-width:600px){
