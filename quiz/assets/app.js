@@ -216,7 +216,7 @@ function renderStep() {
   Analytics.track('quiz_question_view', baseCtx({ question_id: step.id, question_index: idx }));
 
   var s = h('div', { class: 'hb-screen' });
-  s.appendChild(topbar({ progress: pct, stepText: (idx + 1) + ' ' + t('common.of') + ' ' + total, onBack: idx > 0 ? goBack : null }));
+  s.appendChild(topbar({ progress: pct, stepText: (idx + 1) + ' ' + t('common.of') + ' ' + total, onBack: goBack }));
   s.appendChild(h('h2', { class: 'hb-question', text: t(step.i18n + '.title') }));
   if (step.microcopy) s.appendChild(h('p', { class: 'hb-micro', text: t(step.microcopy) }));
 
@@ -411,6 +411,7 @@ function commitAnswer(step, value) {
 function advance() { stepPtr++; if (stepPtr >= QUIZ_STEPS.length) startLoading(); else renderStep(); }
 function goBack() {
   Analytics.track('quiz_back_click', baseCtx());
+  if (stepPtr <= 0) { navigate('/'); return; } // first question → back to landing
   stepPtr = Math.max(0, stepPtr - 1);
   var step = QUIZ_STEPS[stepPtr];
   if (!step) { stepPtr = 0; }
