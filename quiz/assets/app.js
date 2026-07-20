@@ -631,7 +631,8 @@ function renderScratch() {
     h('div', { class: 'hb-scratch-credit', text: t('scratch.credit') }),
   ]);
   var canvas = h('canvas', { class: 'hb-scratch-canvas' });
-  var card = h('div', { class: 'hb-scratch-card' }, [reveal, canvas]);
+  var shine = h('div', { class: 'hb-scratch-shine' });
+  var card = h('div', { class: 'hb-scratch-card' }, [reveal, canvas, shine]);
   s.appendChild(card);
 
   var claim = h('button', { class: 'hb-cta', text: t('scratch.claim'), onclick: function () {
@@ -653,12 +654,49 @@ function renderScratch() {
     canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
     var ctx = canvas.getContext('2d');
     ctx.scale(dpr, dpr);
-    var g = ctx.createLinearGradient(0, 0, rect.width, rect.height);
-    g.addColorStop(0, '#d9c08a'); g.addColorStop(.5, '#c4a262'); g.addColorStop(1, '#b08f4e');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, rect.width, rect.height);
-    ctx.fillStyle = 'rgba(255,255,255,.85)';
-    ctx.font = '700 20px Rubik, sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText(t('scratch.hintShort'), rect.width / 2, rect.height / 2 + 7);
+    var W = rect.width, H = rect.height;
+
+    // brushed-gold base
+    var g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, '#e5cd95'); g.addColorStop(.45, '#cfae6c');
+    g.addColorStop(.75, '#c09a55'); g.addColorStop(1, '#a9853f');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+    // satin sheen bands
+    ctx.save(); ctx.translate(W / 2, H / 2); ctx.rotate(-Math.PI / 9);
+    for (var band = -4; band <= 4; band++) {
+      ctx.fillStyle = 'rgba(255,255,255,' + (band % 2 ? 0.05 : 0.028) + ')';
+      ctx.fillRect(-W, band * 44, W * 2, 20);
+    }
+    ctx.restore();
+
+    // metallic grain
+    for (var sp = 0; sp < 260; sp++) {
+      var sx = Math.random() * W, sy = Math.random() * H, sr = Math.random() * 1.1 + .25;
+      ctx.fillStyle = Math.random() > .5 ? 'rgba(255,255,255,.10)' : 'rgba(96,72,24,.08)';
+      ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2); ctx.fill();
+    }
+
+    ctx.textAlign = 'center';
+    // brand line + corner ornaments
+    ctx.fillStyle = 'rgba(84,62,20,.55)';
+    ctx.font = '600 12px Rubik, sans-serif';
+    ctx.fillText('H O N E Y B A L I', W / 2, 30);
+    ctx.fillStyle = 'rgba(84,62,20,.38)';
+    ctx.font = '400 13px Rubik, sans-serif';
+    ctx.fillText('✦', 24, 32); ctx.fillText('✦', W - 24, 32);
+    ctx.fillText('✦', 24, H - 22); ctx.fillText('✦', W - 24, H - 22);
+
+    // center instruction pill
+    var pw = Math.min(210, W * .58), ph = 48, px = (W - pw) / 2, py = H / 2 - ph / 2 + 4;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(px, py, pw, ph, 24); else ctx.rect(px, py, pw, ph);
+    ctx.fillStyle = 'rgba(255,255,255,.16)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.4; ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.font = '700 19px Rubik, sans-serif';
+    ctx.fillText(t('scratch.hintShort'), W / 2, py + 31);
+
     ctx.globalCompositeOperation = 'destination-out';
     var scratching = false, strokes = 0, revealed = false;
     function scratchAt(e) {
@@ -674,7 +712,7 @@ function renderScratch() {
         }
       }
     }
-    canvas.addEventListener('pointerdown', function (e) { scratching = true; canvas.setPointerCapture(e.pointerId); scratchAt(e); });
+    canvas.addEventListener('pointerdown', function (e) { scratching = true; card.classList.add('is-touched'); canvas.setPointerCapture(e.pointerId); scratchAt(e); });
     canvas.addEventListener('pointermove', function (e) { if (scratching) scratchAt(e); });
     canvas.addEventListener('pointerup', function () { scratching = false; });
   }, 250);
@@ -1081,11 +1119,15 @@ function render() {
   computeBase();
   root = document.getElementById('hb-app');
   Store.init();
+  // Fresh entry = fresh funnel: every page load wipes previous answers so nobody
+  // lands mid-quiz with old checkmarks. UTM, referrer and language survive the
+  // reset. /success is exempt — a post-payment redirect must keep its payment
+  // context for the WhatsApp handoff.
+  if (ROUTES[currentRoute()] !== 'success') Store.reset();
   I18n.setBase(BASE);
   var lang = I18n.resolveInitialLang();
   await I18n.load(lang);
   Analytics.init();
-  // restore step pointer if entering quiz mid-way
-  stepPtr = firstUnanswered();
+  stepPtr = 0;
   render();
 })();
