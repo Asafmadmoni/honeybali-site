@@ -119,7 +119,6 @@ export const QUIZ_STEPS = [
   {
     id: 'info3', type: 'info', i18n: 'quiz.info3', media: 'activitiesImages',
     steps: ['quiz.info3.step1', 'quiz.info3.step2', 'quiz.info3.step3'],
-    note: 'quiz.info3.note',
   },
   {
     id: 'q9_budget', type: 'single', i18n: 'quiz.q9',
