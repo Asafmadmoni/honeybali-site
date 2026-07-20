@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex">
+  <title>HoneyBali</title>
+  <script>
+    /* GitHub Pages / static SPA fallback for the Quiz Funnel deep routes.
+       An unknown /.../quiz/<route> is redirected into the funnel app at /.../quiz/?hbroute=<route>,
+       which the app reads and restores (answers persist in localStorage).
+       Existing query params (lang, utm_*) are preserved; guarded against redirect loops. */
+    (function () {
+      try {
+        var p = location.pathname;
+        var i = p.indexOf('/quiz');
+        if (i < 0) return;
+        var base = p.slice(0, i) + '/quiz';
+        var route = p.slice(i + 5) || '/';           // everything after '/quiz'
+        var params = new URLSearchParams(location.search);
+        if (params.has('hbroute')) return;            // already processed → stop (no loop)
+        params.set('hbroute', route);
+        location.replace(base + '/?' + params.toString());
+      } catch (e) { /* fall through to blank */ }
+    })();
+  </script>
+</head>
+<body></body>
+</html>

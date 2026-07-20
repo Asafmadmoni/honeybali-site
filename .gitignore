@@ -1,2 +1,7 @@
 node_modules/
 .DS_Store
+
+# Internal cost data must never be committed / shipped to client
+INTERNAL-COSTS*.md
+.env
+.env.*
