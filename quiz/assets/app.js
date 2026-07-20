@@ -510,6 +510,7 @@ function renderLead(step) {
     Store.saveAnswer(step.id, { done: true });
     // NOTE: lead saved here, but WhatsApp opens ONLY after payment success.
     Analytics.track('quiz_complete', baseCtx());
+    sendLeadWebhook('lead_submitted'); // every completed questionnaire lands on the dashboard
     startLoading();
   });
 
@@ -800,31 +801,16 @@ function viewResult(routeRel) {
     h('div', { class: 'hb-topbar-brand' }, [brandLogo(false)]),
     h('div', { style: 'flex:1' }), langSwitcher(),
   ]));
-  // THE RESULT FIRST — the visitor must see their match without scrolling.
-  // Imagery comes after the verdict, not before it.
-  s.appendChild(h('div', { class: 'hb-eyebrow hb-eyebrow-lg', text: t('result.recommendedFor') }));
-  s.appendChild(h('h1', { class: 'hb-pkg-name', text: pkg.name }));
-  s.appendChild(h('p', { class: 'hb-pkg-tagline', text: t(pkg.i18n.tagline) }));
+  // THE VERDICT FIRST, AS A BOOM — a dark stage, the package name huge and centered.
+  // One image total on this page (after the spec sheet); no gallery clutter.
+  s.appendChild(h('div', { class: 'hb-verdict' }, [
+    h('div', { class: 'hb-verdict-eyebrow', text: t('result.recommendedFor') }),
+    h('h1', { class: 'hb-verdict-name', text: pkg.name }),
+    h('div', { class: 'hb-verdict-rule' }),
+    h('p', { class: 'hb-verdict-tagline', text: t(pkg.i18n.tagline) }),
+  ]));
   var heroEntry = (MEDIA.resultHero && MEDIA.resultHero[pkgId]) || null;
   var heroSrc = mediaSrc(heroEntry);
-  if (heroSrc) {
-    var media = h('div', { class: 'hb-media hb-result-media' });
-    var heroImg = h('img', { src: heroSrc, alt: '' });
-    orientMedia(media, heroImg);
-    media.appendChild(heroImg);
-    var chip = devChip(heroEntry);
-    if (chip) media.appendChild(chip);
-    s.appendChild(media);
-  }
-  var gal = MEDIA.resultGallery && MEDIA.resultGallery[pkgId];
-  if (gal && gal.length) {
-    var strip = h('div', { class: 'hb-gallery' });
-    gal.forEach(function (g) {
-      var gs = mediaSrc(g);
-      if (gs) strip.appendChild(h('div', { class: 'hb-gallery-item' }, [h('img', { src: gs, alt: '' })]));
-    });
-    s.appendChild(strip);
-  }
 
   // body sections append directly to the screen
   var body = h('div', {});
@@ -848,6 +834,15 @@ function viewResult(routeRel) {
   if (facts.priority) specRow(t('result.priorityLabel'), t('refine.q1.' + facts.priority));
   if (facts.pace) specRow(t('result.paceLabel'), t('refine.q2.' + facts.pace));
   s.appendChild(spec);
+
+  // the single breather image for this page
+  if (heroSrc) {
+    var media = h('div', { class: 'hb-media hb-result-media', style: 'margin-top:22px' });
+    var heroImg = h('img', { src: heroSrc, alt: '' });
+    orientMedia(media, heroImg);
+    media.appendChild(heroImg);
+    s.appendChild(media);
+  }
 
   // includes — the single home for what the package delivers (no separate "differentiators"
   // section: it duplicated these bullets in other words; unique facts were folded in here)
@@ -1011,6 +1006,7 @@ function viewCheckout() {
         // treat as a completed lead handoff (still no WhatsApp before payment per brief;
         // here there is no payment, so we send them to a thank-you without WhatsApp purchase framing)
         Store.setPayment({ status: 'offer_requested' });
+        sendLeadWebhook('offer_requested');
         navigate('/success');
       } }),
     ]));
@@ -1044,13 +1040,17 @@ function sendLeadWebhook(stage) {
   if (!url) return;
   var st = Store.get();
   try {
+    var priced = null;
+    try { priced = st.selectedPackage ? pricingFor(st.selectedPackage, st.facts) : null; } catch (e2) {}
     fetch(url, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      // text/plain keeps this a "simple" CORS request — no preflight to fail on
+      method: 'POST', headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
+        token: CAMPAIGN.leadToken || '',
         stage: stage, sessionId: st.sessionId, language: st.language,
         lead: st.lead, package: st.selectedPackage, facts: st.facts,
         answers: st.answers, reasonCodes: st.routingReasonCodes,
-        payment: st.payment, utm: st.utm, referrer: st.referrer,
+        payment: st.payment, utm: st.utm, referrer: st.referrer, pricing: priced,
       }),
     }).catch(function () {});
   } catch (e) { /* never block the funnel on delivery */ }

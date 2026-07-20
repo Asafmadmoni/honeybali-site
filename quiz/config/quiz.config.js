@@ -143,7 +143,6 @@ export const QUIZ_STEPS = [
       { id: 'b7',   i18n: 'quiz.q9.b7',   effects: { score: { signature: 3 }, set: { budgetSegment: 'signature' } } },
       { id: 'b15',  i18n: 'quiz.q9.b15',  effects: { score: { signature: 2, private: 1 }, set: { budgetSegment: 'flexible' } } },
       { id: 'b15p', i18n: 'quiz.q9.b15p', effects: { score: { private: 3 }, set: { budgetSegment: 'private' } } },
-      { id: 'undecided', i18n: 'quiz.q9.undecided', effects: { score: { explorer: 1 }, set: { budgetSegment: 'unknown' } } },
     ],
   },
   {
@@ -151,7 +150,6 @@ export const QUIZ_STEPS = [
     options: [
       { id: 'yes',     i18n: 'quiz.q10.yes',     effects: { set: { flightStatus: 'booked' } } },
       { id: 'notyet',  i18n: 'quiz.q10.notYet',  effects: { set: { flightStatus: 'not_yet' } } },
-      { id: 'waiting', i18n: 'quiz.q10.waiting', effects: { set: { flightStatus: 'waiting_plan' } } },
     ],
   },
   {
@@ -159,7 +157,6 @@ export const QUIZ_STEPS = [
     options: [
       { id: 'now',      i18n: 'quiz.q11.now',     effects: { score: { private: 1, signature: 1 }, set: { readiness: 'now' } } },
       { id: 'soon',     i18n: 'quiz.q11.soon',    effects: { set: { readiness: 'soon' } } },
-      { id: 'comparing', i18n: 'quiz.q11.comparing', effects: { score: { explorer: 1 }, set: { readiness: 'comparing' } } },
     ],
   },
   {
