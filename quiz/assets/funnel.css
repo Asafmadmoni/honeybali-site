@@ -192,6 +192,18 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
 .hb-spec-row:last-child{border-bottom:0}
 .hb-spec-row .k{font-size:13.5px;color:var(--ink-3)}
 .hb-spec-row .v{font-size:15.5px;font-weight:600;color:var(--ink)}
+/* numbered process steps (01/02/03 serif gold) */
+.hb-steps{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:0}
+.hb-steps li{display:flex;gap:16px;align-items:flex-start;padding:13px 0;
+  border-bottom:1px solid var(--line-soft)}
+.hb-steps li:last-child{border-bottom:0}
+.hb-step-num{font-family:var(--font-display);font-size:24px;font-weight:500;color:var(--gold);
+  line-height:1.15;flex:none;min-width:34px}
+.hb-step-text{font-size:15.5px;line-height:1.6;color:var(--ink-2);padding-top:2px}
+/* objection note — quiet emphasis with a gold side rule */
+.hb-note{margin:16px 0 0;padding-inline-start:14px;border-inline-start:2px solid var(--gold);
+  font-size:14.5px;line-height:1.65;color:var(--ink-2);max-width:46ch}
+
 /* editorial list */
 .hb-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
 .hb-list li{position:relative;padding-inline-start:20px;font-size:16px;color:var(--ink-2);line-height:1.55}

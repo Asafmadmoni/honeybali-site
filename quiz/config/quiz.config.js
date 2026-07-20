@@ -102,6 +102,13 @@ export const QUIZ_STEPS = [
       { id: 'unsure',  i18n: 'quiz.q8.unsure',  effects: { set: { passportType: 'unknown' } } },
     ],
   },
+
+  // Objection-handling slide — right where the passport/timing objections are born.
+  {
+    id: 'info3', type: 'info', i18n: 'quiz.info3', media: 'activitiesImages',
+    steps: ['quiz.info3.step1', 'quiz.info3.step2', 'quiz.info3.step3'],
+    note: 'quiz.info3.note',
+  },
   {
     id: 'q9_budget', type: 'single', i18n: 'quiz.q9',
     // Options are conceptual until retail bands are set (BUDGET_RANGE_* placeholders).

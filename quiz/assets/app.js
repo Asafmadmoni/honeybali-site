@@ -322,11 +322,24 @@ function renderInfo(step) {
   body.appendChild(h('div', { class: 'hb-rule' }));
   body.appendChild(h('h2', { text: t(step.i18n + '.title') }));
   body.appendChild(h('p', { class: 'hb-body', text: t(step.i18n + '.body') }));
+  if (step.steps) body.appendChild(stepsList(step.steps));
+  if (step.note) body.appendChild(h('p', { class: 'hb-note', text: t(step.note) }));
   body.appendChild(h('div', { class: 'hb-sticky' }, [
     h('button', { class: 'hb-cta', text: t(step.i18n + '.cta'), onclick: advance }),
   ]));
   s.appendChild(body);
   mount(s);
+}
+/* numbered editorial process steps (01/02/03 in serif gold) */
+function stepsList(keys) {
+  var ol = h('ol', { class: 'hb-steps' });
+  keys.forEach(function (k, i) {
+    ol.appendChild(h('li', {}, [
+      h('span', { class: 'hb-step-num', text: (i + 1 < 10 ? '0' : '') + (i + 1) }),
+      h('span', { class: 'hb-step-text', text: t(k) }),
+    ]));
+  });
+  return ol;
 }
 function mediaFor(key) {
   if (!key) return null;
@@ -526,12 +539,21 @@ function viewResult(routeRel) {
   s.appendChild(h('div', { class: 'hb-microlabel', text: t('result.whatsSpecial') }));
   s.appendChild(listOf(pkg.i18n.differentiatorsKeys));
 
+  // how it works — the smart visa timeline (objection: "why start now?")
+  s.appendChild(h('div', { class: 'hb-microlabel', text: t('result.process.title') }));
+  s.appendChild(stepsList(['result.process.step1', 'result.process.step2', 'result.process.step3']));
+
   // price
   s.appendChild(priceBlock(pkgId, facts));
 
-  // faq
+  // faq — package FAQs + shared objection-handling FAQs (passport / why-now / why-deposit)
   var faq = h('div', { class: 'hb-faq' });
-  pkg.i18n.faqKeys.forEach(function (k) {
+  var faqKeys = pkg.i18n.faqKeys.concat(
+    pkgId === 'visa'
+      ? ['result.faqShared.1', 'result.faqShared.2']
+      : ['result.faqShared.1', 'result.faqShared.2', 'result.faqShared.3']
+  );
+  faqKeys.forEach(function (k) {
     var txt = t(k); var parts = txt.split('?');
     faq.appendChild(h('details', {}, [
       h('summary', { text: (parts[0] || txt) + (parts.length > 1 ? '?' : '') }),
