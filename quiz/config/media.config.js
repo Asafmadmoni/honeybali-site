@@ -1,39 +1,52 @@
 /**
  * media.config.js — central media registry.
- * Until real assets are uploaded to /public/influencers/amna-amer/, these point to
- * clearly-labelled placeholders. Do NOT auto-pull from Instagram and do NOT ship
- * generic stock in the final version — replace each entry with real HoneyBali /
- * amna & amer content.
+ *
+ * Each slot: { src, placeholder, fallback, note }
+ *   src       — the FINAL asset (Amna & Amer / HoneyBali content) under /public/influencers/amna-amer/
+ *   placeholder=true — final asset not uploaded yet
+ *   fallback  — real imagery already in the repo, shown meanwhile so the funnel always
+ *               looks premium (never a striped dev box). Replace by dropping the real
+ *               file at `src` and flipping placeholder to false.
+ *
+ * Do NOT auto-pull from Instagram. Do NOT ship generic stock in the final version.
  */
 
-const INFLUENCER_DIR = 'influencers/amna-amer'; // under /public, resolved relative to site base
-const SITE_IMG = 'images'; // existing HoneyBali imagery already in the repo
+const INF = 'influencers/amna-amer'; // under /public (site-relative)
+const IMG = 'images';                // existing site imagery in the repo
 
-// PLACEHOLDER=true means "not final media yet — show a labelled placeholder tile".
-function ph(path, note) { return { src: path, placeholder: true, note: note }; }
-function real(path) { return { src: path, placeholder: false }; }
+function slot(src, fallback, note) {
+  return { src: src, placeholder: true, fallback: fallback, note: note };
+}
+function real(src) { return { src: src, placeholder: false, fallback: null }; }
 
 export const MEDIA_CONFIG = {
   // Landing hero — vertical couple video/image from Bali.
-  heroVideo: ph(`${INFLUENCER_DIR}/hero-vertical.mp4`, 'Amna & Amer vertical hero video'),
-  heroImage: ph(`${INFLUENCER_DIR}/hero-vertical.jpg`, 'Amna & Amer vertical hero image'),
-  coupleImage: ph(`${INFLUENCER_DIR}/couple.jpg`, 'Amna & Amer couple photo'),
+  heroVideo: slot(`${INF}/hero-vertical.mp4`, null, 'Amna & Amer vertical hero video'),
+  heroImage: slot(`${INF}/hero-vertical.jpg`, `${IMG}/photos/hero-vertical-poster.jpg`, 'Amna & Amer vertical hero image'),
+  coupleImage: slot(`${INF}/couple.jpg`, `${IMG}/services/honeymoon.jpg`, 'Amna & Amer couple photo'),
 
   // Product-tier galleries.
-  premiumHotelImages: [ph(`${INFLUENCER_DIR}/private-hotel-1.jpg`, 'Private tier hotel 1')],
-  signatureHotelImages: [ph(`${INFLUENCER_DIR}/signature-hotel-1.jpg`, 'Signature tier hotel 1')],
-  activitiesImages: [ph(`${INFLUENCER_DIR}/activity-1.jpg`, 'Bali activity 1')],
-  restaurantImages: [ph(`${INFLUENCER_DIR}/restaurant-1.jpg`, 'Bali restaurant 1')],
+  premiumHotelImages: [slot(`${INF}/private-hotel-1.jpg`, `${IMG}/services/hotels.jpg`, 'Private tier hotel 1')],
+  signatureHotelImages: [slot(`${INF}/signature-hotel-1.jpg`, `${IMG}/destinations/Sideman.jpg`, 'Signature tier hotel 1')],
+  activitiesImages: [slot(`${INF}/activity-1.jpg`, `${IMG}/destinations/NusaPenida.jpg`, 'Bali activity 1')],
+  restaurantImages: [slot(`${INF}/restaurant-1.jpg`, `${IMG}/destinations/Canggu.jpg`, 'Bali restaurant 1')],
 
-  // Social proof — only use if real material exists.
-  testimonialVideo: ph(`${INFLUENCER_DIR}/testimonial.mp4`, 'Real testimonial video (optional)'),
-  testimonialImages: [ph(`${INFLUENCER_DIR}/testimonial-1.jpg`, 'Real testimonial image (optional)')],
+  // Result-page hero backgrounds (per package).
+  resultHero: {
+    private: slot(`${INF}/private-hero.jpg`, `${IMG}/destinations/Uluwatu.jpg`, 'Private result hero'),
+    signature: slot(`${INF}/signature-hero.jpg`, `${IMG}/destinations/Ubud.jpg`, 'Signature result hero'),
+    visa: slot(`${INF}/visa-hero.jpg`, `${IMG}/destinations/NorthBali.jpg`, 'Visa result hero'),
+  },
 
-  // Loading-screen imagery (reuses existing site media as a safe non-stock fallback).
+  // Social proof — only if REAL material exists.
+  testimonialVideo: slot(`${INF}/testimonial.mp4`, null, 'Real testimonial video (optional)'),
+  testimonialImages: [slot(`${INF}/testimonial-1.jpg`, null, 'Real testimonial image (optional)')],
+
+  // Loading-screen imagery.
   loadingImages: [
-    real(`${SITE_IMG}/destinations/Ubud.jpg`),
-    real(`${SITE_IMG}/destinations/NusaPenida.jpg`),
-    real(`${SITE_IMG}/services/honeymoon.jpg`),
+    real(`${IMG}/destinations/Ubud.jpg`),
+    real(`${IMG}/destinations/NusaPenida.jpg`),
+    real(`${IMG}/services/honeymoon.jpg`),
   ],
 };
 

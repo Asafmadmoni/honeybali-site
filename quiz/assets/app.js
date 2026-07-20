@@ -112,18 +112,26 @@ async function switchLang(l) {
 /* mount */
 var root;
 function mount(screen) { root.innerHTML = ''; root.appendChild(screen); window.scrollTo(0, 0); }
+
+/* Resolve a media entry to a usable src: final asset, else its real-imagery fallback. */
+function mediaSrc(entry) {
+  if (!entry) return null;
+  if (!entry.placeholder) return withBase(entry.src);
+  if (entry.fallback) return withBase(entry.fallback);
+  return null;
+}
+function devChip(entry) {
+  if (!APP_CONFIG.isDev() || !entry || !entry.placeholder) return null;
+  return h('span', { class: 'hb-devchip', text: 'DEV · ' + entry.src.split('/').pop() });
+}
 function mediaTile(entry, cls) {
   var box = h('div', { class: 'hb-media ' + (cls || '') });
-  if (!entry || entry.placeholder) {
-    box.appendChild(h('div', { class: 'hb-placeholder' }, [
-      h('div', { html: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>' }),
-      h('div', { text: APP_CONFIG.isDev() && entry ? entry.note : 'HoneyBali' }),
-      APP_CONFIG.isDev() && entry ? h('b', { text: entry.src }) : null,
-    ]));
-  } else {
-    var src = withBase(entry.src);
+  var src = mediaSrc(entry);
+  if (src) {
     if (/\.(mp4|webm)$/.test(src)) box.appendChild(h('video', { src: src, autoplay: '', muted: '', loop: '', playsinline: '' }));
     else box.appendChild(h('img', { src: src, alt: '', loading: 'lazy' }));
+    var chip = devChip(entry);
+    if (chip) box.appendChild(chip);
   }
   return box;
 }
@@ -132,22 +140,45 @@ function withBase(rel) {
   var siteRoot = BASE.replace(/\/quiz$/, '');
   return siteRoot + '/' + rel.replace(/^\//, '');
 }
+/* Cinematic full-bleed background layer */
+function cineBg(entry) {
+  var bg = h('div', { class: 'hb-cine-bg' });
+  var src = mediaSrc(entry);
+  if (src) {
+    if (/\.(mp4|webm)$/.test(src)) bg.appendChild(h('video', { src: src, autoplay: '', muted: '', loop: '', playsinline: '' }));
+    else bg.appendChild(h('img', { src: src, alt: '' }));
+  }
+  return bg;
+}
+function brandmark() {
+  return h('div', { class: 'hb-brandmark' }, [
+    h('img', { class: 'hb-emblem', src: withBase('assets/gate-white.svg'), alt: '' }),
+    h('div', { class: 'hb-wordmark', text: 'HoneyBali' }),
+  ]);
+}
 
 /* ---------------- Views ---------------- */
 function viewLanding() {
   Analytics.track('landing_view', baseCtx());
-  var s = h('div', { class: 'hb-screen hb-landing' });
-  s.appendChild(h('div', { class: 'hb-topbar' }, [h('div', { style: 'flex:1' }), langSwitcher()]));
-  s.appendChild(h('div', { class: 'hb-eyebrow', text: t('landing.eyebrow') }));
-  s.appendChild(mediaTile(MEDIA.heroImage, 'hb-vertical'));
-  s.appendChild(h('h1', { class: 'hb-h1', text: t('landing.title') }));
-  s.appendChild(h('p', { class: 'hb-lead', text: t('landing.subtitle') }));
-  s.appendChild(h('p', { class: 'hb-micro', text: t('landing.duration') }));
-  s.appendChild(h('div', { class: 'hb-sticky' }, [
-    h('button', { class: 'hb-cta', text: t('landing.cta'), onclick: function () {
+  var s = h('div', { class: 'hb-screen hb-cine hb-dark-ui' });
+  s.appendChild(cineBg(MEDIA.heroImage));
+  var chip = devChip(MEDIA.heroImage);
+  if (chip) s.appendChild(chip);
+  var inner = h('div', { class: 'hb-cine-inner' });
+  inner.appendChild(h('div', { class: 'hb-topbar' }, [h('div', { style: 'flex:1' }), langSwitcher()]));
+  var content = h('div', { class: 'hb-cine-content' });
+  content.appendChild(brandmark());
+  content.appendChild(h('div', { class: 'hb-eyebrow', text: t('landing.eyebrow') }));
+  content.appendChild(h('h1', { class: 'hb-hero-title', text: t('landing.title') }));
+  content.appendChild(h('p', { class: 'hb-hero-sub', text: t('landing.subtitle') }));
+  content.appendChild(h('div', { class: 'hb-cta-wrap' }, [
+    h('button', { class: 'hb-cta hb-cta-gold', text: t('landing.cta'), onclick: function () {
       Analytics.track('quiz_start', baseCtx()); navigate('/quiz');
     } }),
   ]));
+  content.appendChild(h('p', { class: 'hb-micro', text: t('landing.duration') }));
+  inner.appendChild(content);
+  s.appendChild(inner);
   mount(s);
 }
 
@@ -262,14 +293,24 @@ function renderStepper(step) {
 }
 function renderInfo(step) {
   Analytics.track('quiz_info_slide_view', baseCtx({ question_id: step.id }));
-  var s = h('div', { class: 'hb-screen hb-info' });
-  s.appendChild(topbar({ onBack: goBack }));
-  s.appendChild(mediaTile(mediaFor(step.media), ''));
-  s.appendChild(h('h2', { class: 'hb-h2', text: t(step.i18n + '.title') }));
-  s.appendChild(h('p', { class: 'hb-body', text: t(step.i18n + '.body') }));
-  s.appendChild(h('div', { class: 'hb-sticky' }, [
-    h('button', { class: 'hb-cta', text: t(step.i18n + '.cta'), onclick: advance }),
+  var entry = mediaFor(step.media);
+  var s = h('div', { class: 'hb-screen hb-cine hb-dark-ui hb-info' });
+  s.appendChild(cineBg(entry));
+  var chip = devChip(entry);
+  if (chip) s.appendChild(chip);
+  var inner = h('div', { class: 'hb-cine-inner' });
+  inner.appendChild(h('div', { class: 'hb-topbar' }, [
+    h('button', { class: 'hb-back', 'aria-label': t('common.back'), html: ICON.back, onclick: goBack }),
+    h('div', { style: 'flex:1' }), langSwitcher(),
   ]));
+  var content = h('div', { class: 'hb-cine-content' });
+  content.appendChild(h('h2', { text: t(step.i18n + '.title') }));
+  content.appendChild(h('p', { class: 'hb-info-body', text: t(step.i18n + '.body') }));
+  content.appendChild(h('div', { class: 'hb-cta-wrap' }, [
+    h('button', { class: 'hb-cta hb-cta-glass', text: t(step.i18n + '.cta'), onclick: advance }),
+  ]));
+  inner.appendChild(content);
+  s.appendChild(inner);
   mount(s);
 }
 function mediaFor(key) {
@@ -365,14 +406,19 @@ function goBack() {
 function startLoading() { navigate('/loading'); }
 function viewLoading() {
   Analytics.track('quiz_loading_view', baseCtx());
-  var s = h('div', { class: 'hb-screen hb-loading' });
-  s.appendChild(mediaTile(mediaFor('coupleImage'), ''));
+  var s = h('div', { class: 'hb-screen hb-cine hb-loading hb-dark-ui' });
+  var inner = h('div', { class: 'hb-cine-inner' });
+  var img = h('div', { class: 'hb-load-img' });
+  var loadSrc = mediaSrc(MEDIA.loadingImages[0]) || mediaSrc(mediaFor('coupleImage'));
+  if (loadSrc) img.appendChild(h('img', { src: loadSrc, alt: '' }));
+  inner.appendChild(img);
   var steps = ['loading.step1', 'loading.step2', 'loading.step3'].map(function (k, i) {
     return h('div', { class: 'hb-load-step' + (i === 0 ? ' active' : ''), 'data-i': i }, [
       h('span', { class: 'hb-load-dot', html: ICON.check }), h('span', { text: t(k) }),
     ]);
   });
-  s.appendChild(h('div', { class: 'hb-load-steps' }, steps));
+  inner.appendChild(h('div', { class: 'hb-load-steps' }, steps));
+  s.appendChild(inner);
   mount(s);
 
   // decide route now, reveal after 6–8s across 3 stages
@@ -421,12 +467,30 @@ function viewResult(routeRel) {
   Analytics.track('quiz_result_view', baseCtx({ selected_package: pkgId }));
 
   var s = h('div', { class: 'hb-screen hb-result hb-theme-' + pkgId });
-  s.appendChild(h('div', { class: 'hb-topbar' }, [h('div', { style: 'flex:1' }), langSwitcher()]));
-  if (APP_CONFIG.isDev()) s.appendChild(h('div', { class: 'hb-dev', text: 'DEV route=' + pkgId + ' · reasons=' + (Store.get().routingReasonCodes.join(',')) }));
 
-  s.appendChild(h('div', { class: 'hb-badge', text: t('result.recommendedFor') }));
-  s.appendChild(h('h1', { class: 'hb-h1', text: t(pkg.i18n.title) }));
-  s.appendChild(h('p', { class: 'hb-lead', text: t(pkg.i18n.tagline) }));
+  // cinematic hero header
+  var heroEntry = (MEDIA.resultHero && MEDIA.resultHero[pkgId]) || null;
+  var hero = h('div', { class: 'hb-result-hero hb-dark-ui' });
+  hero.appendChild(cineBg(heroEntry));
+  var chip = devChip(heroEntry);
+  if (chip) hero.appendChild(chip);
+  var heroInner = h('div', { class: 'hb-result-hero-inner' });
+  heroInner.appendChild(h('div', { class: 'hb-topbar' }, [h('div', { style: 'flex:1' }), langSwitcher()]));
+  var heroContent = h('div', { class: 'hb-result-hero-content' });
+  heroContent.appendChild(h('div', { class: 'hb-badge', text: t('result.recommendedFor') }));
+  heroContent.appendChild(h('h1', { class: 'hb-pkg-name', text: pkg.name }));
+  heroContent.appendChild(h('p', { class: 'hb-pkg-tagline', text: t(pkg.i18n.tagline) }));
+  heroInner.appendChild(heroContent);
+  hero.appendChild(heroInner);
+  s.appendChild(hero);
+
+  // body
+  var body = h('div', { class: 'hb-result-body' });
+  var sAppend = s.appendChild.bind(s);
+  s.appendChild = function (el) { body.appendChild(el); return el; }; // subsequent sections go into body
+  sAppend(body);
+
+  if (APP_CONFIG.isDev()) s.appendChild(h('div', { class: 'hb-dev', text: 'DEV route=' + pkgId + ' · reasons=' + (Store.get().routingReasonCodes.join(',')) }));
 
   // dynamic summary
   s.appendChild(h('div', { class: 'hb-summary', text: buildSummary(pkgId, facts) }));
@@ -525,7 +589,7 @@ function viewCheckout() {
   s.appendChild(topbar({ onBack: function () { navigate('/' + pkg.route); } }));
   s.appendChild(h('h1', { class: 'hb-h1', text: t('checkout.title') }));
 
-  var summary = h('div', { class: 'hb-summary' }, [
+  var summary = h('div', { class: 'hb-order-card' }, [
     row(t('checkout.package'), t(pkg.i18n.title)),
     (pkgId !== 'visa' && f.duration) ? row(t('result.duration'), f.duration + ' ' + t('result.days')) : null,
     (pkgId === 'visa') ? row(t('result.visas'), String(visaCount(f))) : null,
@@ -569,7 +633,7 @@ function viewCheckout() {
   }
   mount(s);
 }
-function row(k, v) { return h('div', { style: 'display:flex;justify-content:space-between;gap:12px;padding:4px 0' }, [h('span', { style: 'color:var(--foreground-light)', text: k }), h('b', { text: v })]); }
+function row(k, v) { return h('div', { class: 'hb-order-row' }, [h('span', { text: k }), h('b', { text: v })]); }
 
 async function doPay(p, outcome) {
   var order = { package: Store.get().selectedPackage, amount: p.amount, currency: p.currency, sessionId: Store.getSessionId() };
