@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1279 1003" preserveAspectRatio="xMidYMid meet">
+  <g fill="none" stroke="#163327">
+    <circle cx="639" cy="501" r="430" stroke-width="26"/>
+    <circle cx="639" cy="501" r="360" stroke-width="10" opacity=".55"/>
+  </g>
+  <text x="639" y="640" text-anchor="middle" fill="#163327"
+        font-family="Georgia, 'Times New Roman', serif" font-size="400"
+        font-weight="500" letter-spacing="8">HB</text>
+</svg>

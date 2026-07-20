@@ -165,12 +165,12 @@ function brandmark() {
 /* ---------------- Views ---------------- */
 function viewLanding() {
   Analytics.track('landing_view', baseCtx());
-  var s = h('div', { class: 'hb-screen hb-cine hb-dark-ui hb-landing' });
+  var s = h('div', { class: 'hb-screen hb-landing' });
 
-  // Hero: vibrant poster image instantly, cinematic video fades in over it when ready.
-  var bg = h('div', { class: 'hb-cine-bg' });
+  // framed hero media card — image instantly, video fades in over it when ready
+  var media = h('div', { class: 'hb-media hb-landing-media' });
   var posterSrc = mediaSrc(MEDIA.heroImage);
-  if (posterSrc) bg.appendChild(h('img', { src: posterSrc, alt: '', fetchpriority: 'high' }));
+  if (posterSrc) media.appendChild(h('img', { src: posterSrc, alt: '', fetchpriority: 'high' }));
   var videoSrc = mediaSrc(MEDIA.heroVideo);
   if (videoSrc) {
     var vid = h('video', { class: 'hb-hero-video', src: videoSrc, autoplay: '', muted: '', loop: '', playsinline: '', preload: 'auto' });
@@ -180,29 +180,33 @@ function viewLanding() {
       if (pr && pr.catch) pr.catch(function () {});
       vid.classList.add('is-ready');
     });
-    bg.appendChild(vid);
+    media.appendChild(vid);
   }
-  s.appendChild(bg);
   var chip = devChip(MEDIA.heroImage);
-  if (chip) s.appendChild(chip);
-  var inner = h('div', { class: 'hb-cine-inner' });
+  if (chip) media.appendChild(chip);
+
+  var inner = h('div', { class: 'hb-landing-inner' });
   inner.appendChild(h('div', { class: 'hb-topbar' }, [
     h('div', { class: 'hb-topbar-brand', text: 'HoneyBali' }),
     h('div', { style: 'flex:1' }), langSwitcher(),
   ]));
-  var content = h('div', { class: 'hb-cine-content' });
+  var content = h('div', { class: 'hb-landing-content' });
   content.appendChild(h('div', { class: 'hb-eyebrow', text: t('landing.eyebrow') }));
-  content.appendChild(h('div', { class: 'hb-rule' }));
-  content.appendChild(h('h1', { class: 'hb-hero-title', text: t('landing.title') }));
-  content.appendChild(h('p', { class: 'hb-hero-sub', text: t('landing.subtitle') }));
+  content.appendChild(h('h1', { class: 'hb-h1', text: t('landing.title') }));
+  content.appendChild(h('p', { class: 'hb-lead', text: t('landing.subtitle') }));
   content.appendChild(h('div', { class: 'hb-cta-wrap' }, [
-    h('button', { class: 'hb-cta hb-cta-light', text: t('landing.cta'), onclick: function () {
+    h('button', { class: 'hb-cta', text: t('landing.cta'), onclick: function () {
       Analytics.track('quiz_start', baseCtx()); navigate('/quiz');
     } }),
   ]));
   content.appendChild(h('p', { class: 'hb-micro', text: t('landing.duration') }));
   inner.appendChild(content);
-  s.appendChild(inner);
+
+  // mobile: media card sits between topbar and content (all inside the column);
+  // desktop grid: inner = column 1, media = column 2
+  var isDesktop = window.matchMedia('(min-width:900px)').matches;
+  if (isDesktop) { s.appendChild(inner); s.appendChild(media); }
+  else { inner.insertBefore(media, content); s.appendChild(inner); }
   mount(s);
 }
 
@@ -336,33 +340,33 @@ function renderStepper(step) {
 function renderInfo(step) {
   Analytics.track('quiz_info_slide_view', baseCtx({ question_id: step.id }));
   var entry = mediaFor(step.media);
-  var s = h('div', { class: 'hb-screen hb-split' });
+  var s = h('div', { class: 'hb-screen' });
 
-  // photo on top, controls floating over it
-  var media = h('div', { class: 'hb-split-media' });
-  var src = mediaSrc(entry);
-  if (src) media.appendChild(/\.(mp4|webm)$/.test(src)
-    ? h('video', { src: src, autoplay: '', muted: '', loop: '', playsinline: '' })
-    : h('img', { src: src, alt: '' }));
-  var chip = devChip(entry);
-  if (chip) media.appendChild(chip);
-  media.appendChild(h('div', { class: 'hb-topbar hb-dark-ui' }, [
+  // normal top bar on white — nothing overlaps the photo
+  s.appendChild(h('div', { class: 'hb-topbar' }, [
     h('button', { class: 'hb-back', 'aria-label': t('common.back'), html: ICON.back, onclick: goBack }),
     h('div', { style: 'flex:1' }), langSwitcher(),
   ]));
-  s.appendChild(media);
 
-  // readable text below, on cream
-  var body = h('div', { class: 'hb-split-body' });
-  body.appendChild(h('div', { class: 'hb-rule' }));
-  body.appendChild(h('h2', { text: t(step.i18n + '.title') }));
-  body.appendChild(h('p', { class: 'hb-body', text: t(step.i18n + '.body') }));
-  if (step.steps) body.appendChild(stepsList(step.steps));
-  if (step.note) body.appendChild(h('p', { class: 'hb-note', text: t(step.note) }));
-  body.appendChild(h('div', { class: 'hb-sticky' }, [
+  // framed image card, fully visible
+  var src = mediaSrc(entry);
+  if (src) {
+    var media = h('div', { class: 'hb-media hb-info-media' });
+    media.appendChild(/\.(mp4|webm)$/.test(src)
+      ? h('video', { src: src, autoplay: '', muted: '', loop: '', playsinline: '' })
+      : h('img', { src: src, alt: '' }));
+    var chip = devChip(entry);
+    if (chip) media.appendChild(chip);
+    s.appendChild(media);
+  }
+
+  s.appendChild(h('h2', { class: 'hb-question', text: t(step.i18n + '.title') }));
+  s.appendChild(h('p', { class: 'hb-lead', text: t(step.i18n + '.body') }));
+  if (step.steps) s.appendChild(stepsList(step.steps));
+  if (step.note) s.appendChild(h('p', { class: 'hb-note', text: t(step.note) }));
+  s.appendChild(h('div', { class: 'hb-sticky' }, [
     h('button', { class: 'hb-cta', text: t(step.i18n + '.cta'), onclick: advance }),
   ]));
-  s.appendChild(body);
   mount(s);
 }
 /* numbered editorial process steps (01/02/03 in serif gold) */
@@ -473,17 +477,15 @@ function goBack() {
 function startLoading() { navigate('/loading'); }
 function viewLoading() {
   Analytics.track('quiz_loading_view', baseCtx());
-  var s = h('div', { class: 'hb-screen hb-cine hb-loading hb-dark-ui' });
-  var inner = h('div', { class: 'hb-cine-inner' });
-  inner.appendChild(h('img', { class: 'hb-load-emblem', src: withBase('assets/gate-white.svg'), alt: '' }));
-  inner.appendChild(h('div', { class: 'hb-load-brand', text: 'HoneyBali' }));
+  var s = h('div', { class: 'hb-screen hb-loading-light' });
+  s.appendChild(h('img', { class: 'hb-load-emblem', src: withBase('assets/gate-dark.svg'), alt: '' }));
+  s.appendChild(h('div', { class: 'hb-load-brand', text: 'HoneyBali' }));
   var steps = ['loading.step1', 'loading.step2', 'loading.step3'].map(function (k, i) {
     return h('div', { class: 'hb-load-step' + (i === 0 ? ' active' : ''), 'data-i': i }, [
       h('span', { class: 'hb-load-dot', html: ICON.check }), h('span', { text: t(k) }),
     ]);
   });
-  inner.appendChild(h('div', { class: 'hb-load-steps' }, steps));
-  s.appendChild(inner);
+  s.appendChild(h('div', { class: 'hb-load-steps' }, steps));
   mount(s);
 
   // decide route now, reveal after 6–8s across 3 stages
@@ -544,24 +546,26 @@ function viewResult(routeRel) {
 
   var s = h('div', { class: 'hb-screen hb-result hb-theme-' + pkgId });
 
-  // cinematic hero header
+  // clean header: top bar, framed image, clear title — nothing cropped or overlaid
+  s.appendChild(h('div', { class: 'hb-topbar' }, [
+    h('div', { class: 'hb-topbar-brand', text: 'HoneyBali' }),
+    h('div', { style: 'flex:1' }), langSwitcher(),
+  ]));
   var heroEntry = (MEDIA.resultHero && MEDIA.resultHero[pkgId]) || null;
-  var hero = h('div', { class: 'hb-result-hero hb-dark-ui' });
-  hero.appendChild(cineBg(heroEntry));
-  var chip = devChip(heroEntry);
-  if (chip) hero.appendChild(chip);
-  var heroInner = h('div', { class: 'hb-result-hero-inner' });
-  heroInner.appendChild(h('div', { class: 'hb-topbar' }, [h('div', { style: 'flex:1' }), langSwitcher()]));
-  var heroContent = h('div', { class: 'hb-result-hero-content' });
-  heroContent.appendChild(h('div', { class: 'hb-eyebrow', text: t('result.recommendedFor') }));
-  heroContent.appendChild(h('h1', { class: 'hb-pkg-name', text: pkg.name }));
-  heroContent.appendChild(h('p', { class: 'hb-pkg-tagline', text: t(pkg.i18n.tagline) }));
-  heroInner.appendChild(heroContent);
-  hero.appendChild(heroInner);
-  s.appendChild(hero);
+  var heroSrc = mediaSrc(heroEntry);
+  if (heroSrc) {
+    var media = h('div', { class: 'hb-media hb-result-media' });
+    media.appendChild(h('img', { src: heroSrc, alt: '' }));
+    var chip = devChip(heroEntry);
+    if (chip) media.appendChild(chip);
+    s.appendChild(media);
+  }
+  s.appendChild(h('div', { class: 'hb-eyebrow', text: t('result.recommendedFor') }));
+  s.appendChild(h('h1', { class: 'hb-pkg-name', text: pkg.name }));
+  s.appendChild(h('p', { class: 'hb-pkg-tagline', text: t(pkg.i18n.tagline) }));
 
-  // body
-  var body = h('div', { class: 'hb-result-body' });
+  // body sections append directly to the screen
+  var body = h('div', {});
   var sAppend = s.appendChild.bind(s);
   s.appendChild = function (el) { body.appendChild(el); return el; }; // subsequent sections go into body
   sAppend(body);
