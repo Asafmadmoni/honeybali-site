@@ -30,8 +30,8 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
 #hb-app{min-height:100dvh;display:flex;flex-direction:column;align-items:center}
 .hb-screen{width:100%;max-width:var(--maxw);flex:1;display:flex;flex-direction:column;
   padding:calc(12px + env(safe-area-inset-top,0)) var(--pad) calc(18px + env(safe-area-inset-bottom,0));
-  animation:hb-fade .4s var(--ease)}
-@keyframes hb-fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  animation:hb-fade .28s var(--ease)}
+@keyframes hb-fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
 /* ---------- top bar ---------- */

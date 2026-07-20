@@ -78,14 +78,20 @@ function navigate(rel, replace) {
 window.addEventListener('popstate', render);
 
 /* ---------------- Screen chrome ---------------- */
+var lastProgressPct = 0; // progress-bar continuity between steps
 function progressIndex(stepId) { return PROGRESS_STEPS.indexOf(stepId); }
 function topbar(opts) {
   opts = opts || {};
   var row = h('div', { class: 'hb-topbar' });
   if (opts.onBack) row.appendChild(h('button', { class: 'hb-back', 'aria-label': t('common.back'), html: ICON.back, onclick: opts.onBack }));
   if (opts.progress != null) {
-    var bar = h('div', { class: 'hb-progress' }, [h('div', { class: 'hb-progress-bar' })]);
-    setTimeout(function () { bar.firstChild.style.width = opts.progress + '%'; }, 20);
+    // continuity: start from the previous value and glide to the new one (never reset to 0)
+    var fill = h('div', { class: 'hb-progress-bar' });
+    fill.style.width = lastProgressPct + '%';
+    var bar = h('div', { class: 'hb-progress' }, [fill]);
+    // fire after the crossfade has placed the screen in the DOM, so the glide is visible
+    setTimeout(function () { fill.style.width = opts.progress + '%'; }, 200);
+    lastProgressPct = opts.progress;
     row.appendChild(bar);
     row.appendChild(h('div', { class: 'hb-progress-label', text: opts.stepText || '' }));
   } else {
@@ -120,9 +126,24 @@ async function switchLang(l) {
   render();
 }
 
-/* mount */
+/* mount — crossfade between screens (no blank flash) */
 var root;
-function mount(screen) { root.innerHTML = ''; root.appendChild(screen); window.scrollTo(0, 0); }
+var mountSeq = 0;
+function mount(screen) {
+  var seq = ++mountSeq;
+  var old = root.firstElementChild;
+  var place = function () {
+    if (seq !== mountSeq) return; // a newer mount superseded this one
+    root.innerHTML = '';
+    root.appendChild(screen);
+    if (window.scrollY > 0) window.scrollTo(0, 0);
+  };
+  if (old) {
+    old.style.transition = 'opacity .13s ease';
+    old.style.opacity = '0';
+    setTimeout(place, 130);
+  } else place();
+}
 
 /* Resolve a media entry to a usable src: final asset, else its real-imagery fallback. */
 function mediaSrc(entry) {
@@ -311,7 +332,7 @@ function renderOptions(step) {
       h('span', { text: t(opt.i18n) }),
     ]);
     btn.addEventListener('click', function () {
-      if (multi) toggleMulti(step, opt, btn, wrap); else chooseSingle(step, opt);
+      if (multi) toggleMulti(step, opt, btn, wrap); else chooseSingle(step, opt, btn, wrap);
     });
     wrap.appendChild(btn);
   });
@@ -325,14 +346,16 @@ function renderOptions(step) {
   }
   return wrap;
 }
-function chooseSingle(step, opt) {
+var advancing = false; // guards double-clicks during the selection→advance beat
+function chooseSingle(step, opt, btn, wrap) {
+  if (advancing) return;
+  advancing = true;
   Analytics.track('quiz_answer_selected', baseCtx({ question_id: step.id, answer_id: opt.id }));
   commitAnswer(step, opt.id);
-  setTimeout(advance, 160); // brief highlight, then auto-advance
-  // reflect selection immediately
-  var btns = root.querySelectorAll('.hb-option');
-  btns.forEach(function (b) { b.classList.remove('selected'); });
-  event && event.currentTarget && event.currentTarget.classList.add('selected');
+  // show the selection clearly, then advance smoothly
+  wrap.querySelectorAll('.hb-option').forEach(function (b) { b.classList.remove('selected'); });
+  btn.classList.add('selected');
+  setTimeout(function () { advancing = false; advance(); }, 260);
 }
 function toggleMulti(step, opt, btn, wrap) {
   var exclusiveOn = opt.effects && opt.effects.exclusive;
