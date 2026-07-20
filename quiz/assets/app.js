@@ -191,13 +191,30 @@ function viewLanding() {
 
 /* quiz step index tracked in state via a lightweight pointer */
 var stepPtr = 0;
+/* Conditional steps: shown only when their showIf matches the current facts. */
+function stepVisible(step) {
+  if (!step || !step.showIf) return true;
+  var facts = Store.getFacts();
+  var cond = step.showIf.factIn || {};
+  return Object.keys(cond).every(function (k) {
+    return cond[k].indexOf(facts[k]) >= 0;
+  });
+}
 function firstUnanswered() {
   for (var i = 0; i < QUIZ_STEPS.length; i++) {
     var st = QUIZ_STEPS[i];
-    if (st.type === 'info') continue;
+    if (st.type === 'info' || !stepVisible(st)) continue;
     if (!Store.hasAnswer(st.id)) return i;
   }
   return QUIZ_STEPS.length - 1;
+}
+/* Progress for a step: conditional follow-ups borrow their parent's slot. */
+function progressFor(ptr) {
+  for (var i = ptr; i >= 0; i--) {
+    var idx = PROGRESS_STEPS.indexOf(QUIZ_STEPS[i].id);
+    if (idx >= 0) return idx;
+  }
+  return 0;
 }
 function viewQuiz() {
   // restore to the right step on refresh/deep-link
@@ -207,10 +224,11 @@ function viewQuiz() {
 function renderStep() {
   var step = QUIZ_STEPS[stepPtr];
   if (!step) { startLoading(); return; }
+  if (!stepVisible(step)) { advance(); return; }
   if (step.type === 'info') return renderInfo(step);
   if (step.type === 'lead') return renderLead(step);
 
-  var idx = progressIndex(step.id);
+  var idx = progressFor(stepPtr);
   var total = PROGRESS_STEPS.length;
   var pct = Math.round((idx / total) * 100);
   Analytics.track('quiz_question_view', baseCtx({ question_id: step.id, question_index: idx }));
@@ -421,13 +439,16 @@ function commitAnswer(step, value) {
   });
   Store.saveAnswer(step.id, value, effects);
 }
-function advance() { stepPtr++; if (stepPtr >= QUIZ_STEPS.length) startLoading(); else renderStep(); }
+function advance() {
+  stepPtr++;
+  while (stepPtr < QUIZ_STEPS.length && !stepVisible(QUIZ_STEPS[stepPtr])) stepPtr++;
+  if (stepPtr >= QUIZ_STEPS.length) startLoading(); else renderStep();
+}
 function goBack() {
   Analytics.track('quiz_back_click', baseCtx());
   if (stepPtr <= 0) { navigate('/'); return; } // first question → back to landing
   stepPtr = Math.max(0, stepPtr - 1);
-  var step = QUIZ_STEPS[stepPtr];
-  if (!step) { stepPtr = 0; }
+  while (stepPtr > 0 && !stepVisible(QUIZ_STEPS[stepPtr])) stepPtr--;
   renderStep();
 }
 
@@ -451,6 +472,7 @@ function viewLoading() {
   // decide route now, reveal after 6–8s across 3 stages
   var result = decide(Store.get().answers);
   Store.setRouting(result.package, result.reasonCodes);
+  Store.setFact('leadTemperature', result.temperature);
   var stageMs = 2400;
   steps.forEach(function (el, i) {
     setTimeout(function () {
@@ -474,8 +496,18 @@ function partyLabel(p) {
   return { couple: 'partyCouple', family: 'partyFamily', friends: 'partyFriends', solo: 'partySolo' }[p] || 'partyCouple';
 }
 function whenLabel(m) {
-  if (!m || m === 'undecided' || m === 'other') return '';
-  var opt = QUIZ_STEPS[2].options.filter(function (o) { return o.effects.set.travelMonth === m; })[0];
+  if (!m || m === 'undecided' || m === 'other') {
+    // date-undecided: fall back to the rough window from the follow-up question
+    var w = Store.getFacts().travelWindow;
+    if (w) {
+      var q3b = QUIZ_STEPS.filter(function (s) { return s.id === 'q3b_window'; })[0];
+      var wopt = q3b && q3b.options.filter(function (o) { return o.effects.set.travelWindow === w; })[0];
+      if (wopt) return t(wopt.i18n);
+    }
+    return '';
+  }
+  var q3 = QUIZ_STEPS.filter(function (s) { return s.id === 'q3_when'; })[0];
+  var opt = q3.options.filter(function (o) { return o.effects.set.travelMonth === m; })[0];
   return opt ? t(opt.i18n) : '';
 }
 function viewResult(routeRel) {
@@ -563,10 +595,12 @@ function viewResult(routeRel) {
   s.appendChild(h('div', { class: 'hb-microlabel', text: t('result.faq') }));
   s.appendChild(faq);
 
-  // single CTA
+  // single CTA — explorers get the soft personal-offer path, buyers the deposit path
   var priced = pricingFor(pkgId, facts);
-  var ctaLabel = pkgId === 'visa' ? t('result.cta')
-    : (priced.deposit ? t('result.ctaReserve') : (priced.chargeable ? t('result.cta') : t('result.ctaOffer')));
+  var ctaLabel;
+  if (facts.leadTemperature === 'explorer' && pkgId !== 'visa') ctaLabel = t('result.ctaOffer');
+  else if (pkgId === 'visa') ctaLabel = t('result.cta');
+  else ctaLabel = priced.deposit ? t('result.ctaReserve') : (priced.chargeable ? t('result.cta') : t('result.ctaOffer'));
   s.appendChild(h('div', { class: 'hb-sticky' }, [
     h('button', { class: 'hb-cta', text: ctaLabel, onclick: function () { navigate('/checkout'); } }),
   ]));
@@ -606,6 +640,9 @@ function pricingFor(pkgId, f) {
 function chargeFor(pkgId, f) {
   var p = pricingFor(pkgId, f);
   if (p.kind === 'visa') return { amount: p.amount, currency: p.currency, isDeposit: false, p: p };
+  // Explorers (soft/undecided leads) are nurtured, not charged: no deposit checkout —
+  // they fall into the personal-offer callback flow instead.
+  if (f.leadTemperature === 'explorer') return { amount: null, currency: p.currency, isDeposit: false, p: p };
   return { amount: p.deposit, currency: p.currency, isDeposit: true, p: p };
 }
 function priceBlock(pkgId, f) {
@@ -621,11 +658,15 @@ function priceBlock(pkgId, f) {
     box.appendChild(h('div', { class: 'hb-price-amount', text: money(p.amount) }));
     if (p.deposit) box.appendChild(h('div', { class: 'hb-deposit', html: t('result.depositLine', { amount: '<b>' + money(p.deposit) + '</b>' }) }));
     box.appendChild(h('div', { class: 'hb-price-note', text: t('result.depositNote') }));
-  } else if (p.deposit) {
+  } else if (p.deposit && f.leadTemperature !== 'explorer') {
     // retail pending — reserve the spot with a deposit; NEVER invent a package price
     box.appendChild(h('div', { class: 'hb-price-custom', text: t('result.priceCustom') }));
     box.appendChild(h('div', {}, [h('span', { class: 'hb-deposit', html: t('result.depositLine', { amount: '<b>' + money(p.deposit) + '</b>' }) })]));
     box.appendChild(h('div', { class: 'hb-price-note', text: t('result.depositNote') }));
+  } else if (f.leadTemperature === 'explorer') {
+    // nurture variant — no charge pressure, personal offer instead
+    box.appendChild(h('div', { class: 'hb-price-custom', text: t('result.priceCustom') }));
+    box.appendChild(h('div', { class: 'hb-price-note', text: t('result.explorerNote') }));
   } else {
     box.appendChild(h('div', { class: 'hb-price-custom', text: t('result.pricePending') }));
   }

@@ -47,6 +47,14 @@ export const ROUTING_CONFIG = {
   // Default when scores are inconclusive.
   defaultRoute: 'signature',
   defaultReason: 'SIGNATURE_VALUE_MATCH',
+
+  // Lead-temperature segmentation: soft/undecided answers accumulate an "explorer" score.
+  // At/above the threshold the lead still gets the SAME package page, but with a soft
+  // personal-offer CTA instead of the deposit checkout — nurture, not expulsion.
+  explorer: {
+    threshold: 3,
+    reason: 'EXPLORER_NURTURE',
+  },
 };
 
 export default ROUTING_CONFIG;

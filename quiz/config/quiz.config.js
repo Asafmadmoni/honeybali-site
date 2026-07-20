@@ -48,12 +48,24 @@ export const QUIZ_STEPS = [
     ],
   },
   {
+    // Conditional follow-up: only for date-undecided users. Turns "don't know" into a
+    // usable signal + a micro-commitment instead of a dead end. "dreaming" marks explorers.
+    id: 'q3b_window', type: 'single', i18n: 'quiz.q3b', microcopy: 'quiz.q3b.microcopy',
+    showIf: { factIn: { travelMonth: ['undecided', 'other'] } },
+    options: [
+      { id: 'summer2027', i18n: 'quiz.q3b.summer',     effects: { set: { travelWindow: 'summer2027' } } },
+      { id: 'winter',     i18n: 'quiz.q3b.winter',     effects: { set: { travelWindow: 'winter2027' } } },
+      { id: 'withinYear', i18n: 'quiz.q3b.withinYear', effects: { set: { travelWindow: 'within_year' } } },
+      { id: 'dreaming',   i18n: 'quiz.q3b.dreaming',   effects: { score: { explorer: 2 }, set: { travelWindow: 'dreaming' } } },
+    ],
+  },
+  {
     id: 'q4_duration', type: 'single', i18n: 'quiz.q4',
     options: [
       { id: '10', i18n: 'quiz.q4.d10', effects: { set: { duration: 10 } } },
       { id: '14', i18n: 'quiz.q4.d14', effects: { set: { duration: 14 } } },
       { id: '21', i18n: 'quiz.q4.d21', effects: { set: { duration: 21 } } },
-      { id: 'unsure', i18n: 'quiz.q4.unsure', effects: { set: { duration: null } } },
+      { id: 'unsure', i18n: 'quiz.q4.unsure', effects: { score: { explorer: 1 }, set: { duration: null } } },
     ],
   },
 
@@ -116,7 +128,7 @@ export const QUIZ_STEPS = [
       { id: 'smart',    i18n: 'quiz.q9.smart',    effects: { score: { signature: 3 }, set: { budgetSegment: 'signature' } } },
       { id: 'indulgent', i18n: 'quiz.q9.indulgent', effects: { score: { private: 2, signature: 1 }, set: { budgetSegment: 'flexible' } } },
       { id: 'highest',  i18n: 'quiz.q9.highest',  effects: { score: { private: 3 }, set: { budgetSegment: 'private' } } },
-      { id: 'undecided', i18n: 'quiz.q9.undecided', effects: { set: { budgetSegment: 'unknown' } } },
+      { id: 'undecided', i18n: 'quiz.q9.undecided', effects: { score: { explorer: 1 }, set: { budgetSegment: 'unknown' } } },
     ],
   },
   {
@@ -125,7 +137,7 @@ export const QUIZ_STEPS = [
       { id: 'yes',     i18n: 'quiz.q10.yes',     effects: { set: { flightStatus: 'booked' } } },
       { id: 'notyet',  i18n: 'quiz.q10.notYet',  effects: { set: { flightStatus: 'not_yet' } } },
       { id: 'waiting', i18n: 'quiz.q10.waiting', effects: { set: { flightStatus: 'waiting_plan' } } },
-      { id: 'checking', i18n: 'quiz.q10.checking', effects: { set: { flightStatus: 'checking' } } },
+      { id: 'checking', i18n: 'quiz.q10.checking', effects: { score: { explorer: 1 }, set: { flightStatus: 'checking' } } },
     ],
   },
   {
@@ -133,8 +145,8 @@ export const QUIZ_STEPS = [
     options: [
       { id: 'now',      i18n: 'quiz.q11.now',     effects: { score: { private: 1, signature: 1 }, set: { readiness: 'now' } } },
       { id: 'soon',     i18n: 'quiz.q11.soon',    effects: { set: { readiness: 'soon' } } },
-      { id: 'comparing', i18n: 'quiz.q11.comparing', effects: { set: { readiness: 'comparing' } } },
-      { id: 'future',   i18n: 'quiz.q11.future',  effects: { set: { readiness: 'future' } } },
+      { id: 'comparing', i18n: 'quiz.q11.comparing', effects: { score: { explorer: 1 }, set: { readiness: 'comparing' } } },
+      { id: 'future',   i18n: 'quiz.q11.future',  effects: { score: { explorer: 2 }, set: { readiness: 'future' } } },
     ],
   },
   {
@@ -151,7 +163,7 @@ export const QUIZ_STEPS = [
 // Steps that count toward the progress bar (info slides & landing excluded from the count
 // but still shown). Questions + lead = the "answered" denominator.
 export const PROGRESS_STEPS = QUIZ_STEPS.filter(function (s) {
-  return s.type !== 'info';
+  return s.type !== 'info' && !s.showIf; // conditional follow-ups don't inflate the count
 }).map(function (s) { return s.id; });
 
 export default QUIZ_STEPS;

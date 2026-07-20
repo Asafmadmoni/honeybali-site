@@ -7,7 +7,7 @@ import QUIZ_STEPS from '../config/quiz.config.js';
 
 // Recompute score tallies from the raw answers (so it's deterministic on refresh).
 function tallyScores(answers) {
-  var score = { private: 0, signature: 0, visa: 0 };
+  var score = { private: 0, signature: 0, visa: 0, explorer: 0 };
   var flags = {};
   var facts = {};
   QUIZ_STEPS.forEach(function (step) {
@@ -80,11 +80,17 @@ export function decide(answers) {
 }
 
 function finalize(pkg, reasons, ctx) {
+  // Lead temperature: soft/undecided answers past the threshold mark an "explorer".
+  // Explorers keep the same package page but get a nurture CTA instead of a deposit charge.
+  var exp = ROUTING.explorer || { threshold: 99 };
+  var temperature = ctx.score.explorer >= exp.threshold ? 'explorer' : 'buyer';
+  if (temperature === 'explorer' && exp.reason) reasons.push(exp.reason);
   return {
     package: pkg,
     reasonCodes: reasons.length ? reasons : [ROUTING.defaultReason],
     score: ctx.score,
     facts: ctx.facts,
+    temperature: temperature,
   };
 }
 
