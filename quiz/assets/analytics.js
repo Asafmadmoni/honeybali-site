@@ -5,8 +5,8 @@
  * - Dedupes once-only events (e.g. landing_view, quiz_complete, payment_success).
  * - No-ops safely when no IDs are set — nothing breaks in dev.
  */
-import ANALYTICS from '../config/analytics.config.js?v=47';
-import APP_CONFIG from '../config/app.config.js?v=47';
+import ANALYTICS from '../config/analytics.config.js?v=48';
+import APP_CONFIG from '../config/app.config.js?v=48';
 
 var loaded = { gtm: false, ga4: false, pixel: false };
 var sentOnce = {};

@@ -52,6 +52,7 @@ export const QUIZ_STEPS = [
       { id: '10', i18n: 'quiz.q4.d10', effects: { set: { duration: 10 } } },
       { id: '14', i18n: 'quiz.q4.d14', effects: { set: { duration: 14 } } },
       { id: '21', i18n: 'quiz.q4.d21', effects: { set: { duration: 21 } } },
+      { id: '21plus', i18n: 'quiz.q4.d21p', effects: { set: { duration: '21+' } } },
     ],
   },
 
