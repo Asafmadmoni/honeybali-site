@@ -55,19 +55,6 @@ export const QUIZ_STEPS = [
   },
 
   {
-    id: 'info1', type: 'info', i18n: 'quiz.info1', media: 'coupleImage',
-    // reacts to WHO is flying (q1)
-    variants: [
-      { when: { factIn: { duration: [21] } },   i18n: 'quiz.info1.d21' },
-      { when: { factIn: { duration: [null] } }, i18n: 'quiz.info1.durUnsure' },
-      { when: { factIn: { partyType: ['couple'] } },  i18n: 'quiz.info1.couple',  media: 'coupleImage' },
-      { when: { factIn: { partyType: ['family'] } },  i18n: 'quiz.info1.family',  media: 'signatureHotelImages' },
-      { when: { factIn: { partyType: ['friends'] } }, i18n: 'quiz.info1.friends', media: 'restaurantImages' },
-      { when: { factIn: { partyType: ['solo'] } },    i18n: 'quiz.info1.solo',    media: 'activitiesImages' },
-    ],
-  },
-
-  {
     id: 'q5_style', type: 'single', i18n: 'quiz.q5',
     options: [
       { id: 'ultra',   i18n: 'quiz.q5.ultra',   effects: { score: { private: 3 }, set: { style: 'ultra' } } },
