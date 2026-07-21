@@ -77,19 +77,18 @@ export const QUIZ_STEPS = [
     ],
   },
   {
+    // trip-planning questions are irrelevant for visa-only people — they skip straight
+    // to passport (q8). Their trip is already planned; we only handle the visa.
+    // Choosing a hotel LEVEL implies "you plan it for us" (wantsFullService) — no
+    // separate "what do you need from us" question. "Already booked hotels" = a visa
+    // customer, same as the q5 fork.
     id: 'q6_lodging', type: 'single', i18n: 'quiz.q6',
+    showIf: { notFlag: 'visaExplicit' },
     options: [
-      { id: 'best',   i18n: 'quiz.q6.best',   effects: { score: { private: 3 }, set: { lodging: 'best' } } },
-      { id: 'luxury', i18n: 'quiz.q6.luxury', effects: { score: { private: 1, signature: 2 }, set: { lodging: 'luxury' } } },
-      { id: 'quality', i18n: 'quiz.q6.quality', effects: { score: { signature: 3 }, set: { lodging: 'quality' } } },
-      { id: 'booked', i18n: 'quiz.q6.booked', effects: { score: { visa: 2 }, flag: 'alreadyPlanned', set: { lodging: 'booked' } } },
-    ],
-  },
-  {
-    id: 'q7_need', type: 'single', i18n: 'quiz.q7',
-    options: [
-      { id: 'full', i18n: 'quiz.q7.full', icon: 'images/brand/icons/honey-moon.png', effects: { score: { private: 2, signature: 2 }, set: { wantsFullService: true } } },
-      { id: 'visaonly', i18n: 'quiz.q7.visaOnly', icon: 'images/brand/icons/passport.png', effects: { score: { visa: 5 }, flag: 'visaExplicit', set: { wantsFullService: false } } },
+      { id: 'best',   i18n: 'quiz.q6.best',   effects: { score: { private: 3 }, set: { lodging: 'best', wantsFullService: true } } },
+      { id: 'luxury', i18n: 'quiz.q6.luxury', effects: { score: { private: 1, signature: 2 }, set: { lodging: 'luxury', wantsFullService: true } } },
+      { id: 'quality', i18n: 'quiz.q6.quality', effects: { score: { signature: 3 }, set: { lodging: 'quality', wantsFullService: true } } },
+      { id: 'booked', i18n: 'quiz.q6.booked', effects: { score: { visa: 4 }, flag: 'visaExplicit', set: { lodging: 'booked', wantsFullService: false } } },
     ],
   },
 
@@ -99,11 +98,14 @@ export const QUIZ_STEPS = [
     checks: ['quiz.info2.checks.1', 'quiz.info2.checks.2', 'quiz.info2.checks.3', 'quiz.info2.checks.4'],
     // irrelevant for visa-only users — they skip straight on (shorter, smarter path)
     showIf: { notFlag: 'visaExplicit' },
-    // reacts to WHAT they asked for (q5 style / q7 full service)
+    // Tier-matched messaging: premium signals (ultra style / best hotels) get the
+    // chef-dinner pitch; value seekers get smart-choices language. The actual
+    // Private/Signature routing happens at the result from these same signals.
     variants: [
-      { when: { factIn: { wantsFullService: [true] } }, i18n: 'quiz.info2.full',  media: 'premiumHotelImages' },
-      { when: { factIn: { style: ['ultra'] } },         i18n: 'quiz.info2.ultra', media: 'premiumHotelImages' },
-      { when: { factIn: { style: ['value'] } },         i18n: 'quiz.info2.value' },
+      { when: { factIn: { style: ['ultra'] } },   i18n: 'quiz.info2.premium', media: 'premiumHotelImages' },
+      { when: { factIn: { lodging: ['best'] } },  i18n: 'quiz.info2.premium', media: 'premiumHotelImages' },
+      { when: { factIn: { wantsFullService: [true] } }, i18n: 'quiz.info2.full', media: 'premiumHotelImages' },
+      { when: { factIn: { style: ['value'] } },   i18n: 'quiz.info2.value' },
     ],
   },
 
@@ -127,7 +129,9 @@ export const QUIZ_STEPS = [
     ],
   },
   {
+    // visa price is fixed — budget is meaningless on that path
     id: 'q9_budget', type: 'single', i18n: 'quiz.q9',
+    showIf: { notFlag: 'visaExplicit' },
     options: [
       { id: 'b7',   i18n: 'quiz.q9.b7',   effects: { score: { signature: 3 }, set: { budgetSegment: 'signature' } } },
       { id: 'b15',  i18n: 'quiz.q9.b15',  effects: { score: { signature: 2, private: 1 }, set: { budgetSegment: 'flexible' } } },
@@ -136,6 +140,7 @@ export const QUIZ_STEPS = [
   },
   {
     id: 'q10_flights', type: 'single', i18n: 'quiz.q10',
+    showIf: { notFlag: 'visaExplicit' },
     options: [
       { id: 'yes',     i18n: 'quiz.q10.yes',     effects: { set: { flightStatus: 'booked' } } },
       { id: 'notyet',  i18n: 'quiz.q10.notYet',  effects: { set: { flightStatus: 'not_yet' } } },
@@ -166,7 +171,8 @@ export const REFINE_STEPS = [
   {
     id: 'qr1_priority', i18n: 'refine.q1',
     options: [
-      { id: 'hotels',     i18n: 'refine.q1.hotels',     effects: { set: { priority: 'hotels' } } },
+      // hotels already got a whole question (q6) — the refine asks something NEW
+      { id: 'views',      i18n: 'refine.q1.views',      effects: { set: { priority: 'views' } } },
       { id: 'experiences', i18n: 'refine.q1.experiences', effects: { set: { priority: 'experiences' } } },
       { id: 'food',       i18n: 'refine.q1.food',       effects: { set: { priority: 'food' } } },
       { id: 'romance',    i18n: 'refine.q1.romance',    effects: { set: { priority: 'romance' } } },
@@ -182,10 +188,11 @@ export const REFINE_STEPS = [
   },
 ];
 
-// Steps that count toward the progress bar (info slides & landing excluded from the count
-// but still shown). Questions + lead = the "answered" denominator.
+// Steps that count toward the progress bar (info slides & landing excluded from the
+// count but still shown). Conditional questions ARE counted — users who skip them
+// simply see the bar leap forward, which reads as "shorter path", not a glitch.
 export const PROGRESS_STEPS = QUIZ_STEPS.filter(function (s) {
-  return s.type !== 'info' && !s.showIf; // conditional follow-ups don't inflate the count
+  return s.type !== 'info';
 }).map(function (s) { return s.id; });
 
 export default QUIZ_STEPS;

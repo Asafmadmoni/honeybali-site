@@ -599,9 +599,12 @@ function viewLoading() {
 var refineStage = 0;
 function runLoadingStage() {
   // stages: 0 load₁ → 1 q₁ → 2 load₂ → 3 q₂ → 4 load₃ → result
+  // Visa-only people skip the refine questions — they're trip-planning questions,
+  // and their trip is already planned. They get a shorter cinematic loop.
+  var skipRefine = !!Store.getFlags().visaExplicit;
   if (refineStage === 1 || refineStage === 3) {
-    renderRefine(REFINE_STEPS[refineStage === 1 ? 0 : 1]);
-    return;
+    if (skipRefine) { refineStage++; }
+    else { renderRefine(REFINE_STEPS[refineStage === 1 ? 0 : 1]); return; }
   }
   var labelKey = ['loading.step1', null, 'loading.step2', null, 'loading.step3'][refineStage];
   Analytics.track('quiz_loading_view', baseCtx());
@@ -829,12 +832,14 @@ function viewResult(routeRel) {
   // spec sheet
   var spec = h('div', { class: 'hb-spec' });
   function specRow(k, v) { spec.appendChild(h('div', { class: 'hb-spec-row' }, [h('span', { class: 'k', text: k }), h('span', { class: 'v', text: v })])); }
+  // Visa page stays lean: visas + passport only. Trip-planning rows (duration,
+  // hotel priority, pace) belong to the trip packages, not to a visa service.
   if (pkgId !== 'visa' && facts.duration) specRow(t('result.duration'), facts.duration + ' ' + t('result.days'));
-  if (facts.travelersCount) specRow(t('result.travelers'), String(facts.travelersCount));
+  if (pkgId !== 'visa' && facts.travelersCount) specRow(t('result.travelers'), String(facts.travelersCount));
   if (pkgId === 'visa') specRow(t('result.visas'), String(visaCount(facts)));
   if (facts.passportType) specRow(t('result.passport'), t('result.' + passportLabel(facts.passportType)));
-  if (facts.priority) specRow(t('result.priorityLabel'), t('refine.q1.' + facts.priority));
-  if (facts.pace) specRow(t('result.paceLabel'), t('refine.q2.' + facts.pace));
+  if (pkgId !== 'visa' && facts.priority) specRow(t('result.priorityLabel'), t('refine.q1.' + facts.priority));
+  if (pkgId !== 'visa' && facts.pace) specRow(t('result.paceLabel'), t('refine.q2.' + facts.pace));
   s.appendChild(spec);
 
   // the single breather image for this page
@@ -894,8 +899,10 @@ function buildSummary(pkgId, f) {
   var duration = f.duration ? f.duration + ' ' + t('result.days') : '';
   var styleMap = { ultra: 'quiz.q5.ultra', value: 'quiz.q5.value', nature: 'quiz.q5.nature', visa: 'quiz.q5.visaOnly' };
   var style = f.style ? t(styleMap[f.style]) : '';
-  // solo travelers get the singular template (מתכנן/ת, not מתכננים)
-  var tpl = (f.partyType === 'solo' && I18n.has('result.summaryTemplateSolo')) ? 'result.summaryTemplateSolo' : 'result.summaryTemplate';
+  // visa page: no trip-planning talk — their trip is set, we only do the visas
+  var tpl = 'result.summaryTemplate';
+  if (pkgId === 'visa' && I18n.has('result.summaryTemplateVisa')) tpl = 'result.summaryTemplateVisa';
+  else if (f.partyType === 'solo' && I18n.has('result.summaryTemplateSolo')) tpl = 'result.summaryTemplateSolo';
   return t(tpl, { party: party, when: when || '—', duration: duration || '—', style: style || '—' });
 }
 function visaCount(f) { return f.travelersCount || 1; }

@@ -251,6 +251,9 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
 /* numbered steps */
 /* info-slide body — a touch more presence than regular leads */
 .hb-info-lead{font-size:17.5px;line-height:1.62;color:var(--ink-2)}
+/* info slides: the CTA always follows the content — never pinned to the viewport
+   bottom with a dead gap. Applies at EVERY width. */
+.hb-info .hb-sticky{position:static;margin-top:26px}
 /* info-slide checklist — what "we close everything" concretely means */
 .hb-checks{list-style:none;margin:18px 0 0;padding:0;display:flex;flex-direction:column;gap:12px}
 .hb-checks li{display:flex;align-items:flex-start;gap:11px;font-size:16px;color:var(--ink-2);line-height:1.5}
@@ -343,8 +346,13 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
   .hb-landing .hb-cta-wrap .hb-cta{width:auto;display:inline-flex;padding:17px 48px}
   .hb-landing .hb-micro{text-align:start}
   .hb-result-media{max-height:300px}
-  /* info slides are short — CTA follows the content instead of pinning to the
-     viewport bottom, so no dead white void between text and button */
-  .hb-info .hb-sticky{position:static;margin-top:30px}
   .hb-info .hb-sticky .hb-cta{width:auto;display:inline-flex;padding:16px 46px}
+  /* wide screens: image beside the text (portrait, faces intact) — no letterbox,
+     no dead gap. Flat DOM arranged via explicit grid; RTL puts text on the right. */
+  .hb-info{display:grid;grid-template-columns:minmax(0,1fr) 300px;column-gap:34px;
+    align-content:start;max-width:780px}
+  .hb-info>*{grid-column:1}
+  .hb-info .hb-topbar{grid-column:1 / -1}
+  .hb-info .hb-info-media,.hb-info .hb-info-media.is-portrait{grid-column:2;grid-row:2 / span 6;
+    height:100%;min-height:330px;max-height:460px;margin-bottom:0}
 }
