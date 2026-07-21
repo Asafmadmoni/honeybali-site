@@ -3,8 +3,9 @@
  * Survives refresh, back button, tab switch and language change (localStorage).
  * Captures & persists UTM/referrer on first load; never drops them on navigation.
  */
-import APP_CONFIG from '../config/app.config.js?v=40';
-import CAMPAIGN_CONFIG from '../config/campaign.config.js?v=40';
+import APP_CONFIG from '../config/app.config.js?v=41';
+import CAMPAIGN_CONFIG from '../config/campaign.config.js?v=41';
+import QUIZ_STEPS, { REFINE_STEPS } from '../config/quiz.config.js?v=41';
 
 var KEY = APP_CONFIG.storageKeys.state;
 
@@ -77,11 +78,14 @@ export const Store = {
   setLanguage: function (lang) { this.get().language = lang; persist(); },
   getLanguage: function () { return this.get().language; },
 
-  // Save an answer + apply its effects (facts/flags). Effects come from quiz.config.
+  // Save an answer. Facts/flags are DERIVED from the answers on every save —
+  // never accumulated — so changing an earlier answer (back navigation) cleanly
+  // un-sets whatever the old choice implied. `effects` param kept for call-site
+  // compatibility; the source of truth is quiz.config.
   saveAnswer: function (stepId, value, effects) {
     var s = this.get();
     s.answers[stepId] = value;
-    if (effects) applyEffects(s, effects);
+    recomputeDerived(s);
     persist();
   },
 
@@ -91,9 +95,17 @@ export const Store = {
     return v !== undefined && v !== null && !(Array.isArray(v) && v.length === 0);
   },
 
-  setFact: function (k, v) { this.get().facts[k] = v; persist(); },
-  getFacts: function () { return this.get().facts; },
-  getFlags: function () { return this.get().flags; },
+  // Manual facts (benefitClaimed, leadTemperature…) live outside the answers and
+  // survive recompute.
+  setFact: function (k, v) {
+    var s = this.get();
+    s.factsManual = s.factsManual || {};
+    s.factsManual[k] = v;
+    recomputeDerived(s);
+    persist();
+  },
+  getFacts: function () { var s = this.get(); if (!s.factsComputed) recomputeDerived(s); return s.facts; },
+  getFlags: function () { var s = this.get(); if (!s.factsComputed) recomputeDerived(s); return s.flags; },
 
   setLead: function (lead) { this.get().lead = lead; persist(); },
   setRouting: function (pkg, reasonCodes) {
@@ -121,9 +133,29 @@ export const Store = {
   },
 };
 
-function applyEffects(s, effects) {
-  if (effects.set) Object.keys(effects.set).forEach(function (k) { s.facts[k] = effects.set[k]; });
-  if (effects.flag) s.flags[effects.flag] = true;
+/* Replay every saved answer through the step configs → fresh facts + flags.
+   Manual facts (setFact) are merged on top. */
+function recomputeDerived(s) {
+  var facts = {}, flags = {};
+  var all = QUIZ_STEPS.concat(REFINE_STEPS);
+  all.forEach(function (step) {
+    if (!step.options) return;
+    var chosen = s.answers[step.id];
+    if (chosen == null) return;
+    var ids = Array.isArray(chosen) ? chosen : [chosen];
+    ids.forEach(function (id) {
+      var opt = step.options.filter(function (o) { return o.id === String(id); })[0];
+      if (!opt || !opt.effects) return;
+      if (opt.effects.set) Object.keys(opt.effects.set).forEach(function (k) { facts[k] = opt.effects.set[k]; });
+      if (opt.effects.flag) flags[opt.effects.flag] = true;
+    });
+  });
+  // stepper answers carry their own numeric fact
+  if (s.answers.q2_travelers != null) facts.travelersCount = parseInt(s.answers.q2_travelers, 10) || facts.travelersCount;
+  Object.assign(facts, s.factsManual || {});
+  s.facts = facts;
+  s.flags = flags;
+  s.factsComputed = true;
 }
 
 export default Store;

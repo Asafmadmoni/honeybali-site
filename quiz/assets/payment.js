@@ -11,7 +11,7 @@
  * verifies success server-side before returning ok:true. Wire it via ADAPTER below and
  * provide keys through environment variables at build/deploy — never in this file.
  */
-import APP_CONFIG from '../config/app.config.js?v=40';
+import APP_CONFIG from '../config/app.config.js?v=41';
 
 // Selected provider adapter. 'simulated' | 'stripe' | 'tranzila' | ... (add real ones here)
 export const PAYMENT_PROVIDER = 'simulated';
@@ -27,7 +27,7 @@ var simulatedAdapter = {
   async confirm(ref, outcome) {
     // outcome: 'success' | 'fail' — driven by the dev test buttons.
     if (outcome === 'fail') return { ok: false, status: 'failed', ref: ref };
-    return { ok: true, status: 'paid', ref: ref, transactionId: 'SIM-' + ref.toUpperCase() };
+    return { ok: true, status: 'paid', ref: ref, transactionId: ref.toUpperCase().replace('SIM_', 'SIM-') };
   },
 };
 

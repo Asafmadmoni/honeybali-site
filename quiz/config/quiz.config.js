@@ -92,7 +92,6 @@ export const QUIZ_STEPS = [
       { when: { factIn: { style: ['ultra'] } },   i18n: 'quiz.info2.premium', media: 'premiumHotelImages' },
       { when: { factIn: { lodging: ['best'] } },  i18n: 'quiz.info2.premium', media: 'premiumHotelImages' },
       { when: { factIn: { wantsFullService: [true] } }, i18n: 'quiz.info2.full', media: 'premiumHotelImages' },
-      { when: { factIn: { style: ['value'] } },   i18n: 'quiz.info2.value' },
     ],
   },
 
