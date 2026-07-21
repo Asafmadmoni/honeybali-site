@@ -2,17 +2,17 @@
  * app.js — HoneyBali Quiz Funnel controller + client router + views.
  * Vanilla ES module, no build step. Mobile-first, RTL, he/ar.
  */
-import APP_CONFIG from '../config/app.config.js?v=41';
-import CAMPAIGN from '../config/campaign.config.js?v=41';
-import MEDIA from '../config/media.config.js?v=41';
-import { VISA, DEPOSIT, getRetailPrice } from '../config/pricing.config.js?v=41';
-import PACKAGES from '../config/packages.config.js?v=41';
-import QUIZ_STEPS, { PROGRESS_STEPS, REFINE_STEPS } from '../config/quiz.config.js?v=41';
-import Store from './state.js?v=41';
-import I18n from './i18n.js?v=41';
-import { decide } from './routing.js?v=41';
-import Analytics from './analytics.js?v=41';
-import Payment from './payment.js?v=41';
+import APP_CONFIG from '../config/app.config.js?v=42';
+import CAMPAIGN from '../config/campaign.config.js?v=42';
+import MEDIA from '../config/media.config.js?v=42';
+import { VISA, DEPOSIT, getRetailPrice } from '../config/pricing.config.js?v=42';
+import PACKAGES from '../config/packages.config.js?v=42';
+import QUIZ_STEPS, { PROGRESS_STEPS, REFINE_STEPS } from '../config/quiz.config.js?v=42';
+import Store from './state.js?v=42';
+import I18n from './i18n.js?v=42';
+import { decide } from './routing.js?v=42';
+import Analytics from './analytics.js?v=42';
+import Payment from './payment.js?v=42';
 
 /* ---------------- DOM helpers ---------------- */
 function h(tag, attrs, children) {

@@ -43,6 +43,7 @@ export const QUIZ_STEPS = [
       { id: 'jun2027', i18n: 'quiz.q3.jun', effects: { set: { travelMonth: '2027-06' } } },
       { id: 'jul2027', i18n: 'quiz.q3.jul', effects: { set: { travelMonth: '2027-07' } } },
       { id: 'aug2027', i18n: 'quiz.q3.aug', effects: { set: { travelMonth: '2027-08' } } },
+      { id: 'sep2027', i18n: 'quiz.q3.sep', effects: { set: { travelMonth: '2027-09' } } },
     ],
   },
   {
