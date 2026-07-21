@@ -804,10 +804,11 @@ function viewResult(routeRel) {
   ]));
   // THE VERDICT FIRST, AS A BOOM — a dark stage, the package name huge and centered.
   // One image total on this page (after the spec sheet); no gallery clutter.
+  var verdictLogo = brandLogo(true); verdictLogo.className = 'hb-verdict-logo';
   s.appendChild(h('div', { class: 'hb-verdict' }, [
+    verdictLogo,
     h('div', { class: 'hb-verdict-eyebrow', text: t('result.recommendedFor') }),
     h('h1', { class: 'hb-verdict-name', text: pkg.name }),
-    h('div', { class: 'hb-verdict-rule' }),
     h('p', { class: 'hb-verdict-tagline', text: t(pkg.i18n.tagline) }),
   ]));
   var heroEntry = (MEDIA.resultHero && MEDIA.resultHero[pkgId]) || null;
