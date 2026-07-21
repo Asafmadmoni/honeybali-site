@@ -155,13 +155,14 @@ export const QUIZ_STEPS = [
 // not the routing.
 export const REFINE_STEPS = [
   {
-    id: 'qr1_priority', i18n: 'refine.q1',
+    // multi-select: people care about more than one thing — collect them all.
+    // The priority fact is derived directly from the answer array (state.js).
+    id: 'qr1_priority', i18n: 'refine.q1', multi: true,
     options: [
-      // hotels already got a whole question (q6) — the refine asks something NEW
-      { id: 'views',      i18n: 'refine.q1.views',      effects: { set: { priority: 'views' } } },
-      { id: 'experiences', i18n: 'refine.q1.experiences', effects: { set: { priority: 'experiences' } } },
-      { id: 'food',       i18n: 'refine.q1.food',       effects: { set: { priority: 'food' } } },
-      { id: 'romance',    i18n: 'refine.q1.romance',    effects: { set: { priority: 'romance' } } },
+      { id: 'views',       i18n: 'refine.q1.views' },
+      { id: 'experiences', i18n: 'refine.q1.experiences' },
+      { id: 'food',        i18n: 'refine.q1.food' },
+      { id: 'romance',     i18n: 'refine.q1.romance' },
     ],
   },
   {

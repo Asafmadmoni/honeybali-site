@@ -2,17 +2,17 @@
  * app.js — HoneyBali Quiz Funnel controller + client router + views.
  * Vanilla ES module, no build step. Mobile-first, RTL, he/ar.
  */
-import APP_CONFIG from '../config/app.config.js?v=43';
-import CAMPAIGN from '../config/campaign.config.js?v=43';
-import MEDIA from '../config/media.config.js?v=43';
-import { VISA, DEPOSIT, getRetailPrice } from '../config/pricing.config.js?v=43';
-import PACKAGES from '../config/packages.config.js?v=43';
-import QUIZ_STEPS, { PROGRESS_STEPS, REFINE_STEPS } from '../config/quiz.config.js?v=43';
-import Store from './state.js?v=43';
-import I18n from './i18n.js?v=43';
-import { decide } from './routing.js?v=43';
-import Analytics from './analytics.js?v=43';
-import Payment from './payment.js?v=43';
+import APP_CONFIG from '../config/app.config.js?v=44';
+import CAMPAIGN from '../config/campaign.config.js?v=44';
+import MEDIA from '../config/media.config.js?v=44';
+import { VISA, DEPOSIT, getRetailPrice } from '../config/pricing.config.js?v=44';
+import PACKAGES from '../config/packages.config.js?v=44';
+import QUIZ_STEPS, { PROGRESS_STEPS, REFINE_STEPS } from '../config/quiz.config.js?v=44';
+import Store from './state.js?v=44';
+import I18n from './i18n.js?v=44';
+import { decide } from './routing.js?v=44';
+import Analytics from './analytics.js?v=44';
+import Payment from './payment.js?v=44';
 
 /* ---------------- DOM helpers ---------------- */
 function h(tag, attrs, children) {
@@ -752,13 +752,25 @@ function renderRefine(step) {
   ]));
   s.appendChild(h('div', { class: 'hb-eyebrow', text: t('refine.eyebrow') }));
   s.appendChild(h('h2', { class: 'hb-question', text: t(step.i18n + '.title') }));
+  if (step.multi) s.appendChild(h('p', { class: 'hb-micro', text: t('common.selectMany') }));
   var wrap = h('div', { class: 'hb-options' });
+  var chosen = [].concat(Store.getAnswer(step.id) || []);
+  var cont = null;
   step.options.forEach(function (opt) {
-    var btn = h('button', { class: 'hb-option' }, [
+    var isSel = chosen.indexOf(opt.id) >= 0;
+    var btn = h('button', { class: 'hb-option' + (step.multi ? ' hb-option-multi' : '') + (isSel ? ' selected' : '') }, [
       h('span', { class: 'hb-check', html: ICON.check }),
       h('span', { text: t(opt.i18n) }),
     ]);
     btn.addEventListener('click', function () {
+      if (step.multi) {
+        // toggle, stay on the screen — continue button confirms
+        var idx = chosen.indexOf(opt.id);
+        if (idx >= 0) { chosen.splice(idx, 1); btn.classList.remove('selected'); }
+        else { chosen.push(opt.id); btn.classList.add('selected'); }
+        if (cont) cont.disabled = chosen.length === 0;
+        return;
+      }
       if (advancing) return;
       advancing = true;
       Analytics.track('quiz_answer_selected', baseCtx({ question_id: step.id, answer_id: opt.id }));
@@ -770,6 +782,17 @@ function renderRefine(step) {
     wrap.appendChild(btn);
   });
   s.appendChild(wrap);
+  if (step.multi) {
+    cont = h('button', { class: 'hb-cta', text: t('common.next'), onclick: function () {
+      if (advancing || !chosen.length) return;
+      advancing = true;
+      Analytics.track('quiz_answer_selected', baseCtx({ question_id: step.id, answer_id: chosen.join(',') }));
+      Store.saveAnswer(step.id, chosen.slice());
+      setTimeout(function () { advancing = false; refineStage++; runLoadingStage(); }, 200);
+    } });
+    cont.disabled = chosen.length === 0;
+    s.appendChild(h('div', { class: 'hb-sticky' }, [cont]));
+  }
   mount(s);
 }
 
@@ -850,7 +873,10 @@ function viewResult(routeRel) {
   if (pkgId !== 'visa' && facts.travelersCount) specRow(t('result.travelers'), String(facts.travelersCount));
   if (pkgId === 'visa') specRow(t('result.visas'), String(visaCount(facts)));
   if (facts.passportType) specRow(t('result.passport'), t('result.' + passportLabel(facts.passportType)));
-  if (pkgId !== 'visa' && facts.priority) specRow(t('result.priorityLabel'), t('refine.q1.' + facts.priority));
+  if (pkgId !== 'visa' && facts.priority) {
+    var prLabels = [].concat(facts.priority).map(function (p) { return t('refine.q1.' + p); }).join(' · ');
+    specRow(t('result.priorityLabel'), prLabels);
+  }
   if (pkgId !== 'visa' && facts.pace) specRow(t('result.paceLabel'), t('refine.q2.' + facts.pace));
   s.appendChild(spec);
 

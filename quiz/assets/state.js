@@ -3,9 +3,9 @@
  * Survives refresh, back button, tab switch and language change (localStorage).
  * Captures & persists UTM/referrer on first load; never drops them on navigation.
  */
-import APP_CONFIG from '../config/app.config.js?v=43';
-import CAMPAIGN_CONFIG from '../config/campaign.config.js?v=43';
-import QUIZ_STEPS, { REFINE_STEPS } from '../config/quiz.config.js?v=43';
+import APP_CONFIG from '../config/app.config.js?v=44';
+import CAMPAIGN_CONFIG from '../config/campaign.config.js?v=44';
+import QUIZ_STEPS, { REFINE_STEPS } from '../config/quiz.config.js?v=44';
 
 var KEY = APP_CONFIG.storageKeys.state;
 
@@ -152,6 +152,8 @@ function recomputeDerived(s) {
   });
   // stepper answers carry their own numeric fact
   if (s.answers.q2_travelers != null) facts.travelersCount = parseInt(s.answers.q2_travelers, 10) || facts.travelersCount;
+  // multi-select refine: priorities live as an array
+  if (s.answers.qr1_priority != null) facts.priority = [].concat(s.answers.qr1_priority);
   Object.assign(facts, s.factsManual || {});
   s.facts = facts;
   s.flags = flags;
