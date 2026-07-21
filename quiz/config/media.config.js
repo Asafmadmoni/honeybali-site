@@ -28,7 +28,7 @@ export const MEDIA_CONFIG = {
   // Landing hero — waterfall poster paints first, the brand film fades in over it.
   // cloud-free supercut of the brand film (4 scenes, bottom cloud band cropped,
   // crossfades; built with ffmpeg from the original). Self-hosted — no external CDN.
-  heroVideo: real('public/media/hero-loop.mp4?v=2'),
+  heroVideo: real('public/media/hero-loop.mp4?v=3'),
   heroImage: real(`${INF}/hero-vertical.jpg`),
   coupleImage: real(`${INF}/couple.jpg`),
   coupleAvatar: real(`${INF}/couple-avatar.jpg`),
