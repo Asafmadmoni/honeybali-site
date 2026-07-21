@@ -3,8 +3,8 @@
  * Survives refresh, back button, tab switch and language change (localStorage).
  * Captures & persists UTM/referrer on first load; never drops them on navigation.
  */
-import APP_CONFIG from '../config/app.config.js';
-import CAMPAIGN_CONFIG from '../config/campaign.config.js';
+import APP_CONFIG from '../config/app.config.js?v=40';
+import CAMPAIGN_CONFIG from '../config/campaign.config.js?v=40';
 
 var KEY = APP_CONFIG.storageKeys.state;
 

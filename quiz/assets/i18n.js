@@ -5,14 +5,14 @@
  * - t('a.b.c', vars) with {var} interpolation and graceful fallback.
  * - Switching language never resets quiz answers (state is separate).
  */
-import APP_CONFIG from '../config/app.config.js';
-import Store from './state.js';
+import APP_CONFIG from '../config/app.config.js?v=40';
+import Store from './state.js?v=40';
 
 var BASE = null; // resolved by app bootstrap (site-relative path to /quiz)
 var dict = {};
 var current = null;
 
-function localeUrl(lang) { return (BASE || '.') + '/locales/' + lang + '.json?v=39'; }
+function localeUrl(lang) { return (BASE || '.') + '/locales/' + lang + '.json?v=40'; }
 
 export const I18n = {
   setBase: function (b) { BASE = b; },

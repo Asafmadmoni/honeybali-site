@@ -11,7 +11,7 @@
  * verifies success server-side before returning ok:true. Wire it via ADAPTER below and
  * provide keys through environment variables at build/deploy — never in this file.
  */
-import APP_CONFIG from '../config/app.config.js';
+import APP_CONFIG from '../config/app.config.js?v=40';
 
 // Selected provider adapter. 'simulated' | 'stripe' | 'tranzila' | ... (add real ones here)
 export const PAYMENT_PROVIDER = 'simulated';
