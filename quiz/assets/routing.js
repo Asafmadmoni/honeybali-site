@@ -2,8 +2,8 @@
  * routing.js — decides ONE product from answers. Pure function, no UI, no DOM.
  * Reads routing.config.js + the effects accumulated in state.
  */
-import ROUTING from '../config/routing.config.js?v=45';
-import QUIZ_STEPS from '../config/quiz.config.js?v=45';
+import ROUTING from '../config/routing.config.js?v=46';
+import QUIZ_STEPS from '../config/quiz.config.js?v=46';
 
 // Recompute score tallies from the raw answers (so it's deterministic on refresh).
 function tallyScores(answers) {

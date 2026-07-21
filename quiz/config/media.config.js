@@ -26,9 +26,9 @@ function real(src) { return { src: src, placeholder: false, fallback: null }; }
 
 export const MEDIA_CONFIG = {
   // Landing hero — waterfall poster paints first, the brand film fades in over it.
-  heroVideo: slot(`${INF}/hero-vertical.mp4`,
-    'https://honeybali.com/wp-content/uploads/2024/12/HoneyBali-compress-1-1.mp4',
-    'Amna & Amer vertical hero video (drop file to replace the brand film)'),
+  // cloud-free supercut of the brand film (4 scenes, bottom cloud band cropped,
+  // crossfades; built with ffmpeg from the original). Self-hosted — no external CDN.
+  heroVideo: real('public/media/hero-loop.mp4'),
   heroImage: real(`${INF}/hero-vertical.jpg`),
   coupleImage: real(`${INF}/couple.jpg`),
   coupleAvatar: real(`${INF}/couple-avatar.jpg`),
