@@ -117,8 +117,9 @@ export const QUIZ_STEPS = [
   },
 
   // Objection-handling slide — right where the passport/timing objections are born.
+  // No image here: the 3-step process IS the content, and it must fit one screen.
   {
-    id: 'info3', type: 'info', i18n: 'quiz.info3', media: 'activitiesImages',
+    id: 'info3', type: 'info', i18n: 'quiz.info3',
     steps: ['quiz.info3.step1', 'quiz.info3.step2', 'quiz.info3.step3'],
     // reacts to WHICH passport they hold (q8)
     variants: [

@@ -82,13 +82,15 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
 /* ---------- framed media (never cropped under UI) ---------- */
 .hb-media{width:100%;border-radius:var(--r-lg);overflow:hidden;position:relative;
   background:var(--bg-soft);box-shadow:var(--sh-2)}
-.hb-media img,.hb-media video{width:100%;height:100%;object-fit:cover}
+/* faces live in the upper part of a photo — when a frame crops, it crops LEGS, never heads */
+.hb-media img,.hb-media video{width:100%;height:100%;object-fit:cover;object-position:50% 18%}
 .hb-landing-media{aspect-ratio:4/5;max-height:44dvh}
-.hb-info-media{aspect-ratio:16/10;max-height:270px;margin-bottom:18px}
+/* info-slide media is a compact banner: title + body + CTA must all fit ONE screen,
+   no scrolling. Portrait shots share the same frame — top-anchored, legs crop away. */
+.hb-info-media,.hb-info-media.is-portrait{aspect-ratio:auto;height:clamp(160px,24vh,230px);
+  margin-bottom:16px}
 .hb-result-media{aspect-ratio:16/9;max-height:240px;margin-bottom:18px}
-/* vertical (reel-format) imagery gets a portrait frame instead of a brutal crop */
-.hb-info-media.is-portrait{aspect-ratio:4/5;max-height:400px}
-.hb-result-media.is-portrait{aspect-ratio:4/5;max-height:440px}
+.hb-result-media.is-portrait{aspect-ratio:4/5;max-height:330px}
 .hb-hero-video{position:absolute;inset:0;opacity:0;transition:opacity .8s var(--ease)}
 .hb-hero-video.is-ready{opacity:1}
 .hb-devchip{position:absolute;top:10px;inset-inline-start:10px;z-index:3;background:rgba(0,0,0,.55);
@@ -319,7 +321,7 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
 /* ---------- short phones ---------- */
 @media (max-height:640px){
   .hb-landing-media{max-height:34dvh}
-  .hb-info-media{max-height:200px}
+  .hb-info-media,.hb-info-media.is-portrait{height:150px}
   .hb-load-steps{gap:13px}
   .hb-topbar{margin-bottom:14px}
 }
