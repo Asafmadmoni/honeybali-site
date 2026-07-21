@@ -11,10 +11,9 @@ export const CAMPAIGN_CONFIG = {
   // lead + answers + order here so the business gets the details automatically —
   // without relying on the customer pressing the WhatsApp button.
   // ⚠️ Empty = disabled. Paste your Make webhook URL to activate.
-  // HoneyBali leads dashboard on the VPS (visible only in DevTools; move to the
-  // brand domain when one exists). Token is a shared-secret deterrent — public
-  // by nature in client JS, real protection is server-side rate limits.
-  leadWebhookUrl: 'https://lp.connect-ins.co.il/api/hb-lead',
+  // HoneyBali leads dashboard — neutral VPS hostname, no brand crossover.
+  // Token is a shared-secret deterrent — public by nature in client JS.
+  leadWebhookUrl: 'https://srv1684269.hstgr.cloud/api/hb-lead',
   leadToken: 'hb_a0dc57947dccb3bc4162bfa946b300556af497c2',
 
   influencers: {

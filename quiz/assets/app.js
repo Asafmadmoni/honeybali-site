@@ -148,7 +148,7 @@ function mount(screen) {
   };
   if (old) {
     old.classList.add('is-leaving');
-    setTimeout(place, 120);
+    setTimeout(place, 100);
   } else place();
 }
 

@@ -18,7 +18,9 @@
 }
 *,*::before,*::after{box-sizing:border-box}
 html,body{margin:0;padding:0}
-html{-webkit-text-size-adjust:100%}
+/* the scrollbar must NEVER pop in/out between steps — that horizontal shove was
+   the "jitter" after answering. Reserve the gutter permanently. */
+html{-webkit-text-size-adjust:100%;overflow-y:scroll;scrollbar-gutter:stable}
 body{font-family:var(--font-main);color:var(--ink);background:var(--bg);
   line-height:1.55;font-size:16px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
 img,video{max-width:100%;display:block}
@@ -61,11 +63,12 @@ a,button,input,select,summary{-webkit-tap-highlight-color:transparent}
 /* result-page verdict label — the "this is your match" line earns headline weight */
 .hb-eyebrow.hb-eyebrow-lg{font-size:clamp(17px,4.6vw,21px);letter-spacing:.1em;margin:6px 0 12px}
 
-/* ---------- step transitions: topbar stays rock-solid, only content swaps ---------- */
-.hb-screen>:not(.hb-topbar){transition:opacity .24s ease,transform .24s ease}
-.hb-screen.is-leaving>:not(.hb-topbar){opacity:0;transform:translateY(6px);
-  transition:opacity .12s ease,transform .12s ease}
-.hb-screen.is-entering>:not(.hb-topbar){opacity:0;transform:translateY(10px);transition:none}
+/* ---------- step transitions: topbar stays rock-solid, only content swaps ----------
+   leave = quick pure fade (no motion), enter = gentle fade+rise. One direction of
+   movement only — two directions read as jitter. */
+.hb-screen>:not(.hb-topbar){transition:opacity .2s ease,transform .2s ease}
+.hb-screen.is-leaving>:not(.hb-topbar){opacity:0;transition:opacity .09s ease}
+.hb-screen.is-entering>:not(.hb-topbar){opacity:0;transform:translateY(6px);transition:none}
 .hb-rule{width:34px;height:3px;background:var(--brand);border-radius:2px;margin:0 0 14px}
 .hb-h1{font-size:clamp(30px,8vw,40px);line-height:1.12;font-weight:800;margin:0 0 12px;
   letter-spacing:-.01em;color:var(--ink)}

@@ -43,18 +43,6 @@ export const QUIZ_STEPS = [
       { id: 'jun2027', i18n: 'quiz.q3.jun', effects: { set: { travelMonth: '2027-06' } } },
       { id: 'jul2027', i18n: 'quiz.q3.jul', effects: { set: { travelMonth: '2027-07' } } },
       { id: 'aug2027', i18n: 'quiz.q3.aug', effects: { set: { travelMonth: '2027-08' } } },
-      { id: 'other',   i18n: 'quiz.q3.other',    effects: { set: { travelMonth: 'other' } } },
-    ],
-  },
-  {
-    // Conditional follow-up: only when no concrete month was picked. Turns "another date"
-    // into a usable signal + a micro-commitment instead of a dead end. No escape options.
-    id: 'q3b_window', type: 'single', i18n: 'quiz.q3b', microcopy: 'quiz.q3b.microcopy',
-    showIf: { factIn: { travelMonth: ['other'] } },
-    options: [
-      { id: 'summer2027', i18n: 'quiz.q3b.summer',     effects: { set: { travelWindow: 'summer2027' } } },
-      { id: 'winter',     i18n: 'quiz.q3b.winter',     effects: { set: { travelWindow: 'winter2027' } } },
-      { id: 'withinYear', i18n: 'quiz.q3b.withinYear', effects: { set: { travelWindow: 'within_year' } } },
     ],
   },
   {
