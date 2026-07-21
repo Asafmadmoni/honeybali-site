@@ -447,8 +447,9 @@ function renderInfo(step) {
     s.appendChild(media);
   }
 
+  s.appendChild(h('div', { class: 'hb-rule' }));
   s.appendChild(h('h2', { class: 'hb-question', text: t(variant.titleKey) }));
-  s.appendChild(h('p', { class: 'hb-lead', text: t(variant.bodyKey) }));
+  s.appendChild(h('p', { class: 'hb-lead hb-info-lead', text: t(variant.bodyKey) }));
   if (step.checks) {
     var ul = h('ul', { class: 'hb-checks' });
     step.checks.forEach(function (k) {
