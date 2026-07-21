@@ -2,17 +2,17 @@
  * app.js — HoneyBali Quiz Funnel controller + client router + views.
  * Vanilla ES module, no build step. Mobile-first, RTL, he/ar.
  */
-import APP_CONFIG from '../config/app.config.js?v=44';
-import CAMPAIGN from '../config/campaign.config.js?v=44';
-import MEDIA from '../config/media.config.js?v=44';
-import { VISA, DEPOSIT, getRetailPrice } from '../config/pricing.config.js?v=44';
-import PACKAGES from '../config/packages.config.js?v=44';
-import QUIZ_STEPS, { PROGRESS_STEPS, REFINE_STEPS } from '../config/quiz.config.js?v=44';
-import Store from './state.js?v=44';
-import I18n from './i18n.js?v=44';
-import { decide } from './routing.js?v=44';
-import Analytics from './analytics.js?v=44';
-import Payment from './payment.js?v=44';
+import APP_CONFIG from '../config/app.config.js?v=45';
+import CAMPAIGN from '../config/campaign.config.js?v=45';
+import MEDIA from '../config/media.config.js?v=45';
+import { VISA, DEPOSIT, getRetailPrice } from '../config/pricing.config.js?v=45';
+import PACKAGES from '../config/packages.config.js?v=45';
+import QUIZ_STEPS, { PROGRESS_STEPS, REFINE_STEPS } from '../config/quiz.config.js?v=45';
+import Store from './state.js?v=45';
+import I18n from './i18n.js?v=45';
+import { decide } from './routing.js?v=45';
+import Analytics from './analytics.js?v=45';
+import Payment from './payment.js?v=45';
 
 /* ---------------- DOM helpers ---------------- */
 function h(tag, attrs, children) {
@@ -977,26 +977,26 @@ function priceBlock(pkgId, f) {
     box.appendChild(label);
     box.appendChild(h('div', { class: 'hb-price-amount', text: money(p.amount) }));
     if (p.promo) box.appendChild(h('div', { class: 'hb-benefit', text: t('scratch.saveBadge') }));
-    box.appendChild(h('div', {}, [h('span', { class: 'hb-deposit', html: t('result.depositLine', { amount: '<b>' + money(DEPOSIT.amount) + '</b>' }) })]));
+    box.appendChild(h('div', {}, [h('span', { class: 'hb-deposit', html: t('result.depositLine', { amount: '<b>' + money(DEPOSIT.amount, DEPOSIT.symbol) + '</b>' }) })]));
     box.appendChild(h('div', { class: 'hb-price-note', text: t('result.depositNote') }));
   } else if (p.amount != null) {
     // real retail price is set
     box.appendChild(h('div', { class: 'hb-price-label', text: t('result.priceLabel') }));
     box.appendChild(h('div', { class: 'hb-price-amount', text: money(p.amount) }));
-    if (p.deposit) box.appendChild(h('div', { class: 'hb-deposit', html: t('result.depositLine', { amount: '<b>' + money(p.deposit) + '</b>' }) }));
+    if (p.deposit) box.appendChild(h('div', { class: 'hb-deposit', html: t('result.depositLine', { amount: '<b>' + money(p.deposit, DEPOSIT.symbol) + '</b>' }) }));
     box.appendChild(h('div', { class: 'hb-price-note', text: t('result.depositNote') }));
   } else if (p.deposit) {
     // retail pending — reserve the spot with a deposit; NEVER invent a package price
     box.appendChild(h('div', { class: 'hb-price-custom', text: t('result.priceCustom') }));
     if (f.benefitClaimed) box.appendChild(h('div', { class: 'hb-benefit', text: t('result.benefitLine') }));
-    box.appendChild(h('div', {}, [h('span', { class: 'hb-deposit', html: t('result.depositLine', { amount: '<b>' + money(p.deposit) + '</b>' }) })]));
+    box.appendChild(h('div', {}, [h('span', { class: 'hb-deposit', html: t('result.depositLine', { amount: '<b>' + money(p.deposit, DEPOSIT.symbol) + '</b>' }) })]));
     box.appendChild(h('div', { class: 'hb-price-note', text: t('result.depositNote') }));
   } else {
     box.appendChild(h('div', { class: 'hb-price-custom', text: t('result.pricePending') }));
   }
   return box;
 }
-function money(n) { return APP_CONFIG.currencySymbol + Number(n).toLocaleString('en-US'); }
+function money(n, sym) { return (sym || APP_CONFIG.currencySymbol) + Number(n).toLocaleString('en-US'); }
 
 /* ---------------- checkout ---------------- */
 var checkoutRef = null;
@@ -1017,7 +1017,7 @@ function viewCheckout() {
     row(t('checkout.package'), t(pkg.i18n.title)),
     (pkgId !== 'visa' && f.duration) ? row(t('result.duration'), f.duration + ' ' + t('result.days')) : null,
     (pkgId === 'visa') ? row(t('result.visas'), String(visaCount(f))) : null,
-    charge.isDeposit ? row(t('checkout.depositRow'), money(charge.amount)) : null,
+    charge.isDeposit ? row(t('checkout.depositRow'), money(charge.amount, DEPOSIT.symbol)) : null,
   ]);
   s.appendChild(summary);
 
@@ -1025,7 +1025,7 @@ function viewCheckout() {
   if (canCharge) {
     s.appendChild(h('div', { class: 'hb-price' }, [
       h('div', { class: 'hb-price-label', text: t('checkout.amount') }),
-      h('div', { class: 'hb-price-amount', text: money(charge.amount) }),
+      h('div', { class: 'hb-price-amount', text: money(charge.amount, charge.isDeposit ? DEPOSIT.symbol : null) }),
       charge.isDeposit ? h('div', { class: 'hb-price-note', text: t('checkout.depositCredit') }) : null,
     ]));
     if (!Payment.isLive() && APP_CONFIG.isDev()) {

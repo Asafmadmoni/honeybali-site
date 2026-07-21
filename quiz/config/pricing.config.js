@@ -30,8 +30,11 @@ export const RETAIL = {
 // Charged at the funnel level for Private/Signature to reserve the spot; credited
 // against the final trip price. ⚠️ CONFIRM the amount with the business — editable here.
 export const DEPOSIT = {
-  amount: 300,          // USD — set to 300 so the deposit is never confused with the $200 visa benefit
-  currency: 'USD',
+  // Charged in ILS (Grow processes shekels). ≈ $300; distinct from the $200 visa
+  // benefit so the two numbers never blur. Change the amount here only.
+  amount: 1100,
+  currency: 'ILS',
+  symbol: '₪',
   appliesTo: ['private', 'signature', 'visa'],
 };
 
