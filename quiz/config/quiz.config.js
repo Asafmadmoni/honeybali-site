@@ -56,27 +56,26 @@ export const QUIZ_STEPS = [
   },
 
   {
+    // Two sharp styles, each with a 3-photo strip so the difference is VISIBLE.
+    // Visa-only seekers are deliberately not served — no entry point for them.
+    // PLACEHOLDER photos from the existing library — swap when Asaf sends finals.
     id: 'q5_style', type: 'single', i18n: 'quiz.q5',
     options: [
-      { id: 'ultra',   i18n: 'quiz.q5.ultra',   effects: { score: { private: 3 }, set: { style: 'ultra' } } },
-      { id: 'value',   i18n: 'quiz.q5.value',   effects: { score: { signature: 3 }, set: { style: 'value' } } },
-      { id: 'nature',  i18n: 'quiz.q5.nature',  effects: { score: { signature: 2 }, set: { style: 'nature' } } },
-      { id: 'visaonly', i18n: 'quiz.q5.visaOnly', effects: { score: { visa: 5 }, flag: 'visaExplicit', set: { style: 'visa' } } },
+      { id: 'ultra',  i18n: 'quiz.q5.ultra',  effects: { score: { private: 3 }, set: { style: 'ultra' } },
+        photos: ['images/brand/the-edge.webp', 'images/services/hotels.jpg', 'public/influencers/amna-amer/koi-boat.jpg'] },
+      { id: 'nature', i18n: 'quiz.q5.nature', effects: { score: { signature: 2 }, set: { style: 'nature' } },
+        photos: ['public/influencers/amna-amer/rice-terraces.jpg', 'public/influencers/amna-amer/jungle-walk.jpg', 'images/destinations/NusaPenida.jpg'] },
     ],
   },
   {
-    // trip-planning questions are irrelevant for visa-only people — they skip straight
-    // to passport (q8). Their trip is already planned; we only handle the visa.
-    // Choosing a hotel LEVEL implies "you plan it for us" (wantsFullService) — no
-    // separate "what do you need from us" question. "Already booked hotels" = a visa
-    // customer, same as the q5 fork.
+    // Two hotel tiers, photo-contrasted: the absolute top vs smart quality.
+    // Both imply full service. PLACEHOLDER photos — swap when finals arrive.
     id: 'q6_lodging', type: 'single', i18n: 'quiz.q6',
-    showIf: { notFlag: 'visaExplicit' },
     options: [
-      { id: 'best',   i18n: 'quiz.q6.best',   effects: { score: { private: 3 }, set: { lodging: 'best', wantsFullService: true } } },
-      { id: 'luxury', i18n: 'quiz.q6.luxury', effects: { score: { private: 1, signature: 2 }, set: { lodging: 'luxury', wantsFullService: true } } },
-      { id: 'quality', i18n: 'quiz.q6.quality', effects: { score: { signature: 3 }, set: { lodging: 'quality', wantsFullService: true } } },
-      { id: 'booked', i18n: 'quiz.q6.booked', effects: { score: { visa: 4 }, flag: 'visaExplicit', set: { lodging: 'booked', wantsFullService: false } } },
+      { id: 'best',    i18n: 'quiz.q6.best',    effects: { score: { private: 3 }, set: { lodging: 'best', wantsFullService: true } },
+        photos: ['images/brand/the-edge.webp', 'images/services/hotels.jpg', 'images/brand/changu-web.jpg'] },
+      { id: 'quality', i18n: 'quiz.q6.quality', effects: { score: { signature: 3 }, set: { lodging: 'quality', wantsFullService: true } },
+        photos: ['images/destinations/Ubud.jpg', 'images/destinations/Canggu.jpg', 'images/destinations/Sideman.jpg'] },
     ],
   },
 

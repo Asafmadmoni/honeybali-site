@@ -2,17 +2,17 @@
  * app.js — HoneyBali Quiz Funnel controller + client router + views.
  * Vanilla ES module, no build step. Mobile-first, RTL, he/ar.
  */
-import APP_CONFIG from '../config/app.config.js?v=42';
-import CAMPAIGN from '../config/campaign.config.js?v=42';
-import MEDIA from '../config/media.config.js?v=42';
-import { VISA, DEPOSIT, getRetailPrice } from '../config/pricing.config.js?v=42';
-import PACKAGES from '../config/packages.config.js?v=42';
-import QUIZ_STEPS, { PROGRESS_STEPS, REFINE_STEPS } from '../config/quiz.config.js?v=42';
-import Store from './state.js?v=42';
-import I18n from './i18n.js?v=42';
-import { decide } from './routing.js?v=42';
-import Analytics from './analytics.js?v=42';
-import Payment from './payment.js?v=42';
+import APP_CONFIG from '../config/app.config.js?v=43';
+import CAMPAIGN from '../config/campaign.config.js?v=43';
+import MEDIA from '../config/media.config.js?v=43';
+import { VISA, DEPOSIT, getRetailPrice } from '../config/pricing.config.js?v=43';
+import PACKAGES from '../config/packages.config.js?v=43';
+import QUIZ_STEPS, { PROGRESS_STEPS, REFINE_STEPS } from '../config/quiz.config.js?v=43';
+import Store from './state.js?v=43';
+import I18n from './i18n.js?v=43';
+import { decide } from './routing.js?v=43';
+import Analytics from './analytics.js?v=43';
+import Payment from './payment.js?v=43';
 
 /* ---------------- DOM helpers ---------------- */
 function h(tag, attrs, children) {
@@ -350,11 +350,23 @@ function renderOptions(step) {
   var errBox = h('div', { class: 'hb-err-msg' });
   step.options.forEach(function (opt) {
     var isSel = multi ? chosen.indexOf(opt.id) >= 0 : chosen === opt.id;
-    var btn = h('button', { class: 'hb-option' + (multi ? ' hb-option-multi' : '') + (isSel ? ' selected' : '') }, [
+    var top = h('div', { class: 'hb-opt-top' }, [
       h('span', { class: 'hb-check', html: ICON.check }),
       opt.icon ? h('img', { class: 'hb-opt-icon', src: withBase(opt.icon), alt: '' }) : null,
       h('span', { text: t(opt.i18n) }),
     ]);
+    var kids = [top];
+    if (opt.photos && opt.photos.length) {
+      // 3-photo strip inside the option — the difference between choices, visible
+      var strip = h('div', { class: 'hb-opt-photos' });
+      opt.photos.forEach(function (p) {
+        strip.appendChild(h('img', { src: withBase(p), alt: '', loading: 'lazy' }));
+      });
+      kids.push(strip);
+    }
+    var btn = h('button', {
+      class: 'hb-option' + (multi ? ' hb-option-multi' : '') + (opt.photos ? ' hb-option-rich' : '') + (isSel ? ' selected' : ''),
+    }, kids);
     btn.addEventListener('click', function () {
       if (multi) toggleMulti(step, opt, btn, wrap); else chooseSingle(step, opt, btn, wrap);
     });
