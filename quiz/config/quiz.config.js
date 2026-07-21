@@ -57,15 +57,12 @@ export const QUIZ_STEPS = [
   },
 
   {
-    // Two sharp styles, each with a 3-photo strip so the difference is VISIBLE.
-    // Visa-only seekers are deliberately not served — no entry point for them.
-    // PLACEHOLDER photos from the existing library — swap when Asaf sends finals.
+    // Two sharp styles, plain text — the photo comparison lives on the hotel
+    // question only. Visa-only seekers are deliberately not served.
     id: 'q5_style', type: 'single', i18n: 'quiz.q5',
     options: [
-      { id: 'ultra',  i18n: 'quiz.q5.ultra',  effects: { score: { private: 3 }, set: { style: 'ultra' } },
-        photos: ['images/brand/the-edge.webp', 'images/services/hotels.jpg', 'public/influencers/amna-amer/koi-boat.jpg'] },
-      { id: 'nature', i18n: 'quiz.q5.nature', effects: { score: { signature: 2 }, set: { style: 'nature' } },
-        photos: ['public/influencers/amna-amer/rice-terraces.jpg', 'public/influencers/amna-amer/jungle-walk.jpg', 'images/destinations/NusaPenida.jpg'] },
+      { id: 'ultra',  i18n: 'quiz.q5.ultra',  effects: { score: { private: 3 }, set: { style: 'ultra' } } },
+      { id: 'nature', i18n: 'quiz.q5.nature', effects: { score: { signature: 2 }, set: { style: 'nature' } } },
     ],
   },
   {
